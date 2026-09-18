@@ -15,6 +15,11 @@ STYLE_LABELS = {
     "bibtex": "BibTeX",
 }
 
+_DIGIT_TRANSLATION = str.maketrans(
+    "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩",
+    "01234567890123456789",
+)
+
 
 def normalize_style(value: object) -> str:
     candidate = str(value or "").strip().lower()
@@ -37,6 +42,10 @@ def clean_text(value: object, fallback: str = "") -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip() or fallback
 
 
+def westernize_digits(value: object) -> str:
+    return str(value or "").translate(_DIGIT_TRANSLATION)
+
+
 def profile_author(value: object) -> str:
     author = clean_text(value, "نویسندهٔ پروفایل")
     author = re.sub(
@@ -54,7 +63,7 @@ def citation_author(article: dict[str, object], fallback_author: str) -> str:
 
 def citation_year(article: dict[str, object]) -> str:
     value = clean_text(article.get("year"))
-    return value if value else "n.d."
+    return westernize_digits(value) if value else "n.d."
 
 
 def citation_title(article: dict[str, object]) -> str:

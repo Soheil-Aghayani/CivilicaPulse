@@ -21,6 +21,7 @@ class CitationFormatTests(unittest.TestCase):
     def test_style_aliases_and_formats(self):
         self.assertEqual(normalize_style("APA 7th"), "apa7")
         self.assertIn("(1402)", format_citation(ARTICLE, 1, "apa7", "پژوهشگر نمونه"))
+        self.assertIn("(1402)", format_citation({**ARTICLE, "year": "۱۴۰۲"}, 1, "apa7", "پژوهشگر نمونه"))
         self.assertTrue(format_citation(ARTICLE, 2, "vancouver", "پژوهشگر نمونه").startswith("2."))
         self.assertIn("@misc", format_citation(ARTICLE, 1, "bibtex", "پژوهشگر نمونه"))
 
@@ -59,6 +60,27 @@ class WordExportTests(unittest.TestCase):
         self.assertIn(13.0, {run.font.size.pt for run in citation.runs if run.font.size})
         self.assertIn('w:val="right"', document.paragraphs[0]._p.xml)
 
+    def test_persian_digits_become_english_font_runs(self):
+        article = {
+            **ARTICLE,
+            "title": "عنوان پژوهش ۱۴۰۲ English",
+            "year": "۱۴۰۲",
+        }
+        response = self.client.post(
+            "/api/export-word",
+            json={**self.payload, "articles": [article], "file_type": "docx"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        document = Document(BytesIO(response.data))
+        citation = document.paragraphs[-1]
+        self.assertIn("1402", citation.text)
+        self.assertNotIn("۱۴۰۲", citation.text)
+        numeric_runs = [run for run in citation.runs if "1402" in run.text]
+        self.assertTrue(numeric_runs)
+        self.assertTrue(all(run.font.name == "Times New Roman" for run in numeric_runs))
+        self.assertTrue(all(run.font.size.pt == 13.0 for run in numeric_runs))
+
     def test_docx_can_omit_civilica_links(self):
         response = self.client.post(
             "/api/export-word",
@@ -80,6 +102,8 @@ class WordExportTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content_type, "application/msword")
         self.assertTrue(response.data.startswith(b"\xef\xbb\xbf<!doctype html"))
+        self.assertIn(b"<head>", response.data)
+        self.assertIn(b"text-align: right", response.data)
         self.assertIn("B Nazanin".encode(), response.data)
         self.assertIn("Times New Roman".encode(), response.data)
         self.assertIn("1402".encode(), response.data)

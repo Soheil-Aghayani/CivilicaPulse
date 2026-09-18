@@ -59,6 +59,13 @@ body {
   overflow-x: hidden;
 }
 
+.numeric,
+.stat strong,
+.step-number {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
 .skip-link {
   position: fixed;
   top: 10px;
@@ -648,6 +655,29 @@ input[type="checkbox"]:focus-visible {
   margin-top: 16px;
 }
 
+.pagination-bar {
+  display: grid;
+  grid-template-columns: minmax(100px, 1fr) auto minmax(100px, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--card);
+}
+
+.pagination-button {
+  min-width: 100px;
+}
+
+.pagination-status {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .article-card {
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -743,6 +773,7 @@ input[type="checkbox"]:focus-visible {
   color: var(--muted);
   font-size: 12px;
   direction: ltr;
+  unicode-bidi: isolate;
   text-align: right;
   justify-self: end;
 }
@@ -1089,6 +1120,21 @@ input[type="checkbox"]:focus-visible {
 
   .article-card .article-link {
     grid-column: 2;
+  }
+
+  .pagination-bar {
+    grid-template-columns: 1fr auto 1fr;
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .pagination-button {
+    min-width: 0;
+    padding-inline: 8px;
+  }
+
+  .pagination-status {
+    font-size: 11px;
   }
 
   .citation-style-pill {

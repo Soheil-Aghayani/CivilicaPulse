@@ -237,6 +237,8 @@ def _script_chunks(value: str):
             detected_script = "fa"
         elif _LATIN_CHAR_PATTERN.search(character):
             detected_script = "en"
+        elif character in _WESTERN_DIGITS:
+            detected_script = "en"
         else:
             detected_script = current_script
 
@@ -406,8 +408,6 @@ def build_docx(payload: dict[str, object]) -> io.BytesIO:
         citation_paragraph = document.add_paragraph()
         add_bidi(citation_paragraph)
         citation_paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-        citation_paragraph.paragraph_format.right_indent = Inches(0.35)
-        citation_paragraph.paragraph_format.first_line_indent = Inches(-0.35)
         citation_paragraph.paragraph_format.space_after = Pt(7)
         add_word_text(citation_paragraph, citation, size=WORD_PERSIAN_SIZE)
 
@@ -442,8 +442,12 @@ def html_word_markup(
         direction = "rtl" if script == "fa" and not is_url else "ltr"
         weight = "font-weight:700;" if bold else ""
         markup.append(
-            f'<span dir="{direction}" style="font-family:{escape(font_name)};'
-            f'font-size:{font_size}pt;{weight}">{escape(chunk)}</span>'
+            f'<span dir="{direction}" style="font-family:\'{escape(font_name)}\';'
+            f'font-size:{font_size}pt;direction:{direction};unicode-bidi:embed;'
+            f'mso-ansi-font-family:\'{escape(font_name)}\';'
+            f'mso-fareast-font-family:\'{escape(font_name)}\';'
+            f'mso-bidi-font-family:\'{escape(font_name)}\';{weight}">'
+            f'{escape(chunk)}</span>'
         )
     return "".join(markup)
 
@@ -463,7 +467,7 @@ def build_word_html(payload: dict[str, object]) -> io.BytesIO:
         for index, article in enumerate(articles, start=1)
     ]
     citation_markup = "".join(
-        '<p class="citation" dir="rtl">'
+        '<p class="citation" dir="rtl" align="right">'
         + html_word_markup(citation, size=WORD_PERSIAN_SIZE)
         + "</p>"
         for citation in citations
@@ -492,22 +496,24 @@ def build_word_html(payload: dict[str, object]) -> io.BytesIO:
     )
     html = f"""<!doctype html>
 <html lang="fa" dir="rtl">
+<head>
 <meta charset="utf-8">
 <title>منابع سیویلیکا - {escape(profile_name)}</title>
 <style>
   @page {{ margin: 2cm; }}
-  body {{ font-family: "B Nazanin", Tahoma, Arial, sans-serif; direction: rtl; text-align: right; font-size: 14pt; line-height: 1.7; }}
-  h1 {{ margin-bottom: 4pt; direction: rtl; }}
-  p {{ direction: rtl; text-align: right; }}
+  html, body {{ direction: rtl; }}
+  body {{ font-family: "B Nazanin", Tahoma, Arial, sans-serif; mso-bidi-font-family: "B Nazanin"; direction: rtl; text-align: right; font-size: 14pt; line-height: 1.7; }}
+  h1 {{ margin: 0 0 8pt 0; direction: rtl; text-align: right; font-family: "B Nazanin"; font-size: 14pt; }}
+  p {{ direction: rtl; text-align: right; font-family: "B Nazanin"; font-size: 14pt; }}
   .meta {{ color: #475569; font-size: 14pt; }}
-  .citation {{ margin: 0 0 10pt 0; padding-right: 0.35in; text-indent: -0.35in; }}
+  .citation {{ margin: 0 0 10pt 0; padding: 0; text-indent: 0; direction: rtl; text-align: right !important; }}
 </style>
 </head>
-<body>
-<h1>{title_markup}</h1>
-<p>{profile_markup}</p>
-<p class="meta">{meta_markup}</p>
-<p class="meta">{note_markup}</p>
+<body dir="rtl" align="right">
+<h1 dir="rtl" align="right">{title_markup}</h1>
+<p dir="rtl" align="right">{profile_markup}</p>
+<p class="meta" dir="rtl" align="right">{meta_markup}</p>
+<p class="meta" dir="rtl" align="right">{note_markup}</p>
 {citation_markup}
 </body>
 </html>"""

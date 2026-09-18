@@ -8,7 +8,9 @@
     filter: "all",
     query: "",
     citationStyle: "apa7",
-    includeLinks: true
+    includeLinks: true,
+    page: 1,
+    pageSize: 12
   };
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -29,6 +31,10 @@
     conferenceCount: document.getElementById("conference-count"),
     journalCount: document.getElementById("journal-count"),
     resultsList: document.getElementById("results-list"),
+    pagination: document.getElementById("pagination"),
+    previousPage: document.getElementById("previous-page"),
+    nextPage: document.getElementById("next-page"),
+    paginationStatus: document.getElementById("pagination-status"),
     emptyResults: document.getElementById("empty-results"),
     articleFilter: document.getElementById("article-filter"),
     selectVisible: document.getElementById("select-visible-button"),
@@ -125,6 +131,7 @@
     state.query = "";
     state.citationStyle = "apa7";
     state.includeLinks = true;
+    state.page = 1;
 
     elements.articleFilter.value = "";
     document.querySelectorAll(".filter-pill").forEach(function (pill) {
@@ -159,7 +166,7 @@
   }
 
   function visibleArticles() {
-    var query = state.query.trim().toLocaleLowerCase("fa-IR");
+    var query = toEnglishDigits(state.query.trim()).toLocaleLowerCase("fa-IR");
     return state.articles.filter(function (article) {
       var matchesType = state.filter === "all" || article.type === state.filter;
       var searchable = [
@@ -167,14 +174,40 @@
         article.venue,
         article.year,
         article.type
-      ].join(" ").toLocaleLowerCase("fa-IR");
+      ].map(toEnglishDigits).join(" ").toLocaleLowerCase("fa-IR");
       return matchesType && (!query || searchable.indexOf(query) >= 0);
     });
   }
 
+  function pageCount(visible) {
+    return Math.max(1, Math.ceil(visible.length / state.pageSize));
+  }
+
+  function currentPageArticles(visible) {
+    var pages = pageCount(visible);
+    state.page = Math.min(Math.max(state.page, 1), pages);
+    var start = (state.page - 1) * state.pageSize;
+    return visible.slice(start, start + state.pageSize);
+  }
+
+  function renderPagination(visible) {
+    var pages = pageCount(visible);
+    var hasPagination = visible.length > state.pageSize;
+    elements.pagination.hidden = !hasPagination;
+    if (!hasPagination) {
+      return;
+    }
+    elements.paginationStatus.innerHTML = "صفحه <bdi class=\"numeric\">" + toEnglishDigits(state.page) +
+      "</bdi> از <bdi class=\"numeric\">" + toEnglishDigits(pages) +
+      "</bdi> · <bdi class=\"numeric\">" + toEnglishDigits(visible.length) + "</bdi> مقاله";
+    elements.previousPage.disabled = state.page <= 1;
+    elements.nextPage.disabled = state.page >= pages;
+  }
+
   function renderResults() {
     var visible = visibleArticles();
-    elements.resultsList.innerHTML = visible.map(function (article) {
+    var pageArticles = currentPageArticles(visible);
+    elements.resultsList.innerHTML = pageArticles.map(function (article) {
       var selected = state.selected.has(article.id);
       var articleId = escapeHtml(article.id);
       var title = escapeHtml(toEnglishDigits(article.title || "بدون عنوان"));
@@ -191,36 +224,37 @@
             '<h3 class="article-title">' + title + "</h3>" +
             '<div class="article-meta">' +
               '<span class="meta-tag">' + type + "</span>" +
-              '<span>سال ' + year + "</span>" +
+              '<span>سال <bdi class="numeric">' + year + "</bdi></span>" +
               '<span class="article-venue" title="' + venue + '">' + venue + "</span>" +
             "</div>" +
             '<a class="article-link" href="' + url + '" target="_blank" rel="noreferrer">' +
               icon("external") + "مشاهده در سیویلیکا" +
             "</a>" +
           "</div>" +
-          '<span class="article-index" aria-hidden="true">' + toEnglishDigits(number) + "</span>" +
+          '<span class="article-index numeric" aria-hidden="true">' + toEnglishDigits(number) + "</span>" +
         "</article>"
       );
     }).join("");
 
     elements.emptyResults.hidden = visible.length !== 0;
-    updateSelectionUi(visible);
+    renderPagination(visible);
+    updateSelectionUi(pageArticles);
   }
 
   function updateSelectionUi(visible) {
     var count = state.selected.size;
     elements.selectedCount.textContent = toEnglishDigits(count);
     elements.exportButton.disabled = count === 0;
-    var allVisibleSelected = visible.length > 0 && visible.every(function (article) {
+    var allPageSelected = visible.length > 0 && visible.every(function (article) {
       return state.selected.has(article.id);
     });
-    elements.selectVisible.innerHTML = allVisibleSelected
-      ? icon("close") + "لغو انتخاب"
-      : icon("check") + "انتخاب همه";
+    elements.selectVisible.innerHTML = allPageSelected
+      ? icon("close") + "لغو انتخاب صفحه"
+      : icon("check") + "انتخاب صفحه";
   }
 
   function toggleVisibleSelection() {
-    var visible = visibleArticles();
+    var visible = currentPageArticles(visibleArticles());
     var allSelected = visible.length > 0 && visible.every(function (article) {
       return state.selected.has(article.id);
     });
@@ -325,17 +359,19 @@
     if (card) {
       card.classList.toggle("is-selected", checkbox.checked);
     }
-    updateSelectionUi(visibleArticles());
+    updateSelectionUi(currentPageArticles(visibleArticles()));
   });
 
   elements.articleFilter.addEventListener("input", function () {
     state.query = elements.articleFilter.value;
+    state.page = 1;
     renderResults();
   });
 
   document.querySelectorAll(".filter-pill").forEach(function (pill) {
     pill.addEventListener("click", function () {
       state.filter = pill.dataset.filter;
+      state.page = 1;
       document.querySelectorAll(".filter-pill").forEach(function (item) {
         item.classList.toggle("is-active", item === pill);
       });
@@ -353,6 +389,29 @@
   });
 
   elements.selectVisible.addEventListener("click", toggleVisibleSelection);
+  elements.previousPage.addEventListener("click", function () {
+    if (state.page <= 1) {
+      return;
+    }
+    state.page -= 1;
+    renderResults();
+    elements.resultsList.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start"
+    });
+  });
+  elements.nextPage.addEventListener("click", function () {
+    var pages = pageCount(visibleArticles());
+    if (state.page >= pages) {
+      return;
+    }
+    state.page += 1;
+    renderResults();
+    elements.resultsList.scrollIntoView({
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+      block: "start"
+    });
+  });
   elements.includeLinks.addEventListener("change", function () {
     state.includeLinks = elements.includeLinks.checked;
   });
