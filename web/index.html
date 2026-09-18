@@ -1,265 +1,447 @@
 <!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" data-theme="light">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#1e3a5f">
-    <meta name="description" content="استخراج فهرست مقالات پژوهشگر سیویلیکا و دریافت فایل Word با سبک ارجاع دلخواه">
-    <title>استخراج مقالات سیویلیکا</title>
+    <meta name="description" content="CivilicaPulse — سامانه پژوهشی استخراج، گزینش و ساخت فایل Word مقالات پژوهشگران سیویلیکا">
+    <title>CivilicaPulse — استخراج مقالات سیویلیکا و ساخت استناد Word</title>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="preload" href="assets/fonts/IRANYekanXFaNum-Regular.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
     <a class="skip-link" href="#main-content">پرش به محتوای اصلی</a>
+
+    <!-- Solar Linear SVG Sprites -->
     <svg class="icon-sprite" aria-hidden="true">
-      <symbol id="icon-file-search" viewBox="0 0 24 24">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-        <path d="M14 2v6h6M8 14h3M8 18h4M16.5 17.5l3 3M15.2 16.2a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6z"></path>
-      </symbol>
       <symbol id="icon-search" viewBox="0 0 24 24">
-        <circle cx="10.8" cy="10.8" r="6.8"></circle>
-        <path d="m16 16 5 5"></path>
+        <circle cx="11.5" cy="11.5" r="8"></circle>
+        <path d="m17.5 17.5 4 4"></path>
       </symbol>
       <symbol id="icon-download" viewBox="0 0 24 24">
-        <path d="M12 3v12M7 10l5 5 5-5M4 20h16"></path>
+        <path d="M12 3v13m0 0-4.5-4.5m4.5 4.5 4.5-4.5M4 21h16"></path>
       </symbol>
       <symbol id="icon-link" viewBox="0 0 24 24">
-        <path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 7 20l1.1-1.1"></path>
+        <path d="M9 17H7A5 5 0 0 1 7 7h2m6 0h2a5 5 0 0 1 0 10h-2m-7-5h8"></path>
+      </symbol>
+      <symbol id="icon-code" viewBox="0 0 24 24">
+        <path d="m16 18 6-6-6-6M8 6l-6 6 6 6M14 3.5l-4 17"></path>
       </symbol>
       <symbol id="icon-external" viewBox="0 0 24 24">
-        <path d="M14 4h6v6M20 4l-9 9M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"></path>
+        <path d="M14 4h6v6M20 4l-9 9M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
       </symbol>
       <symbol id="icon-upload" viewBox="0 0 24 24">
-        <path d="M12 16V4M7 9l5-5 5 5M4 20h16"></path>
+        <path d="M12 16V3M7.5 7.5 12 3l4.5 4.5M4 21h16"></path>
       </symbol>
       <symbol id="icon-filter" viewBox="0 0 24 24">
         <path d="M4 6h16M7 12h10M10 18h4"></path>
       </symbol>
       <symbol id="icon-check" viewBox="0 0 24 24">
-        <path d="m5 12 4 4L19 6"></path>
-      </symbol>
-      <symbol id="icon-refresh" viewBox="0 0 24 24">
-        <path d="M20 11a8 8 0 0 0-14.7-4L3 10M3 4v6h6M4 13a8 8 0 0 0 14.7 4L21 14m0 6v-6h-6"></path>
-      </symbol>
-      <symbol id="icon-info" viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="9"></circle>
-        <path d="M12 11v5M12 8h.01"></path>
+        <path d="M4 12.6 8.9 17.5 20 6.5"></path>
       </symbol>
       <symbol id="icon-close" viewBox="0 0 24 24">
-        <path d="m6 6 12 12M18 6 6 18"></path>
+        <path d="M18 6 6 18M6 6l12 12"></path>
+      </symbol>
+      <symbol id="icon-refresh" viewBox="0 0 24 24">
+        <path d="M19.7 10.9A9 9 0 1 1 19.4 10V5m0 5h-5"></path>
+      </symbol>
+      <symbol id="icon-chevron-right" viewBox="0 0 24 24">
+        <path d="m9 5 7 7-7 7"></path>
+      </symbol>
+      <symbol id="icon-chevron-left" viewBox="0 0 24 24">
+        <path d="m15 19-7-7 7-7"></path>
+      </symbol>
+      <symbol id="icon-sun" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="4"></circle>
+        <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41m14.14-14.14-1.41 1.41"></path>
+      </symbol>
+      <symbol id="icon-moon" viewBox="0 0 24 24">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </symbol>
+      <symbol id="icon-copy" viewBox="0 0 24 24">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+      </symbol>
+      <symbol id="icon-table" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+        <path d="M3 9h18M3 15h18M9 3v18"></path>
+      </symbol>
+      <symbol id="icon-cards" viewBox="0 0 24 24">
+        <rect x="3" y="4" width="18" height="6" rx="1.5"></rect>
+        <rect x="3" y="14" width="18" height="6" rx="1.5"></rect>
+      </symbol>
+      <symbol id="icon-chart" viewBox="0 0 24 24">
+        <path d="M18 20V10M12 20V4M6 20v-6"></path>
+      </symbol>
+      <symbol id="icon-bookmark" viewBox="0 0 24 24">
+        <path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+      </symbol>
+      <symbol id="icon-print" viewBox="0 0 24 24">
+        <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <path d="M6 14h12v8H6z"></path>
       </symbol>
     </svg>
 
+    <!-- Sticky Header -->
     <header class="site-header">
       <div class="shell header-inner">
-        <a class="brand" href="./" aria-label="صفحهٔ اصلی استخراج مقالات سیویلیکا">
-          <span class="brand-mark"><img src="assets/civilicapulse-mark.webp" alt="" width="44" height="44"></span>
-          <span class="brand-copy">
-            <span class="brand-name">استخراج مقالات سیویلیکا</span>
-            <span class="brand-caption">ابزار پژوهشی فارسی</span>
+        <a class="brand" href="./" aria-label="صفحهٔ اصلی CivilicaPulse">
+          <span class="brand-mark">
+            <img src="assets/civilicapulse-mark.webp" alt="CivilicaPulse" width="40" height="40">
           </span>
+          <div class="brand-title-wrap">
+            <span class="brand-name">CivilicaPulse</span>
+            <span class="badge-live">نسخهٔ لایو</span>
+          </div>
         </a>
+
+        <div class="nav-actions">
+          <a class="nav-link" href="https://soheil-aghayani.github.io/ScholarPulse/" target="_blank" rel="noreferrer" title="سامانهٔ مکمل ScholarPulse">
+            <span>ScholarPulse</span>
+            <svg class="icon" aria-hidden="true"><use href="#icon-external"></use></svg>
+          </a>
+          <a class="nav-link" href="https://github.com/Soheil-Aghayani/CivilicaPulse" target="_blank" rel="noreferrer" title="مخزن گیت‌هاب">
+            <span>گیت‌هاب</span>
+            <svg class="icon" aria-hidden="true"><use href="#icon-code"></use></svg>
+          </a>
+          <button class="btn-icon" id="btn-theme" type="button" aria-label="تغییر حالت شب و روز" title="تغییر حالت شب و روز">
+            <svg class="icon theme-icon-light" aria-hidden="true"><use href="#icon-moon"></use></svg>
+          </button>
+        </div>
       </div>
     </header>
 
     <main id="main-content" class="shell page-main">
-      <section class="hero" aria-labelledby="page-title">
-        <h1 id="page-title">فهرست مقالات پژوهشگر را یک‌جا دریافت کنید.</h1>
-        <p class="hero-text">
-          لینک صفحهٔ پژوهشگر سیویلیکا را وارد کنید، مقاله‌ها را بررسی و انتخاب کنید،
-          سپس فهرست مرتب آن‌ها را در یک فایل Word دریافت کنید.
-        </p>
-      </section>
 
-      <section class="import-card panel" aria-labelledby="import-title">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">مرحلهٔ اول</p>
-            <h2 id="import-title">آدرس صفحهٔ پژوهشگر</h2>
-          </div>
-          <span class="step-number">۱</span>
+      <!-- Hero Input Card -->
+      <section class="hero-card" aria-labelledby="hero-title">
+        <div class="hero-header">
+          <h1 id="hero-title">فهرست مقالات پژوهشگر را یک‌جا دریافت و استناد کنید.</h1>
+          <p>لینک صفحهٔ سیویلیکا را وارد کنید، فایل HTML صفحه را بچسبانید، یا یکی از پژوهشگران نمونه را بارگذاری کنید.</p>
         </div>
 
-        <form id="profile-form" novalidate>
-          <label class="field-label" for="profile-url">لینک پروفایل سیویلیکا</label>
-          <div class="url-row">
-            <div class="input-wrap">
-              <svg class="input-icon icon" aria-hidden="true"><use href="#icon-link"></use></svg>
-              <input id="profile-url" name="profile-url" type="url" dir="ltr"
-                     inputmode="url" autocomplete="url"
-                     placeholder="https://civilica.com/p/176225/"
-                     required>
-            </div>
-            <div class="url-actions">
-              <button class="button button-primary" id="extract-button" type="submit">
+        <!-- Tabs Header -->
+        <div class="tabs-header" role="tablist" aria-label="روش‌های ورود اطلاعات">
+          <button class="tab-btn active" id="tab-btn-url" type="button" role="tab" aria-selected="true" aria-controls="tab-content-url">
+            <svg class="icon" aria-hidden="true"><use href="#icon-link"></use></svg>
+            <span>استخراج از لینک پروفایل</span>
+          </button>
+          <button class="tab-btn" id="tab-btn-html" type="button" role="tab" aria-selected="false" aria-controls="tab-content-html">
+            <svg class="icon" aria-hidden="true"><use href="#icon-code"></use></svg>
+            <span>چسباندن کد یا فایل HTML</span>
+          </button>
+          <button class="tab-btn" id="tab-btn-demo" type="button" role="tab" aria-selected="false" aria-controls="tab-content-demo">
+            <svg class="icon" aria-hidden="true"><use href="#icon-refresh"></use></svg>
+            <span>پژوهشگران نمونه (لایو)</span>
+          </button>
+          <button class="tab-btn" id="tab-btn-bookmarklet" type="button" role="tab" aria-selected="false" aria-controls="tab-content-bookmarklet">
+            <svg class="icon" aria-hidden="true"><use href="#icon-bookmark"></use></svg>
+            <span>بوک‌مارکلت ۱-کلیکی</span>
+          </button>
+        </div>
+
+        <!-- Tab 1: URL Input -->
+        <div class="tab-content active" id="tab-content-url" role="tabpanel" aria-labelledby="tab-btn-url">
+          <form id="profile-form" novalidate>
+            <div class="input-row">
+              <div class="search-input-wrap">
+                <svg class="input-icon icon" aria-hidden="true"><use href="#icon-link"></use></svg>
+                <input id="profile-url" name="profile-url" class="form-input" type="url" dir="ltr"
+                       inputmode="url" autocomplete="url"
+                       placeholder="https://civilica.com/p/176225/"
+                       required>
+              </div>
+              <button class="btn-primary" id="extract-button" type="submit">
                 <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-                <span>استخراج مقاله‌ها</span>
-              </button>
-              <button class="button button-quiet icon-button" id="toggle-html-import" type="button"
-                      aria-expanded="false" aria-controls="html-import" aria-label="وارد کردن HTML صفحه"
-                      title="وارد کردن HTML صفحه">
-                <span class="asset-icon asset-icon-code" aria-hidden="true"></span>
-                <span class="sr-only">وارد کردن HTML صفحه</span>
+                <span>استخراج مقالات</span>
               </button>
             </div>
-          </div>
-        </form>
+          </form>
 
-        <div id="html-import" class="html-import" hidden>
-          <label class="field-label" for="raw-html">کد HTML صفحهٔ پروفایل</label>
-          <textarea id="raw-html" rows="5" dir="ltr" placeholder="View Page Source را باز کنید و کد صفحه را اینجا بچسبانید."></textarea>
-          <div class="html-import-actions">
-            <button class="button button-secondary" id="parse-html-button" type="button">
-              <svg class="icon" aria-hidden="true"><use href="#icon-refresh"></use></svg>
-              پردازش HTML
-            </button>
-            <button class="text-button muted-button" id="close-html-import" type="button">بستن</button>
+          <div class="preset-chips">
+            <span>نمونه‌های آماده:</span>
+            <button class="chip highlight" type="button" data-demo="mehrdadi">پروفسور ناصر مهردادی</button>
+            <button class="chip" type="button" data-demo="karbassi">دکتر احمدرضا کرباسی</button>
+            <button class="chip" type="button" data-demo="aghayani">سهیل آقایانی</button>
           </div>
         </div>
 
+        <!-- Tab 2: HTML Paste / Drop -->
+        <div class="tab-content" id="tab-content-html" role="tabpanel" aria-labelledby="tab-btn-html">
+          <div class="dropzone" id="html-dropzone">
+            <svg class="icon" aria-hidden="true"><use href="#icon-upload"></use></svg>
+            <p class="main-text">فایل HTML صفحهٔ سیویلیکا را به اینجا بکشید و رها کنید</p>
+            <p class="sub-text">یا کد کامل HTML را در کادر زیر بچسبانید تا در کسری از ثانیه استخراج شود</p>
+          </div>
+          <textarea id="raw-html" class="textarea-paste" placeholder="کد منبع صفحه (View Page Source) را اینجا بچسبانید..."></textarea>
+          <div style="margin-top: 10px; display: flex; gap: 8px;">
+            <button class="btn-primary" id="parse-html-btn" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>
+              <span>پردازش فوری در مرورگر</span>
+            </button>
+            <button class="btn-secondary" id="clear-html-btn" type="button">پاک کردن</button>
+          </div>
+        </div>
+
+        <!-- Tab 3: Demo Profiles -->
+        <div class="tab-content" id="tab-content-demo" role="tabpanel" aria-labelledby="tab-btn-demo">
+          <div class="demo-grid">
+            <div class="demo-card" data-demo="mehrdadi">
+              <div class="demo-avatar">NM</div>
+              <div class="demo-info">
+                <strong>پروفسور ناصر مهردادی</strong>
+                <span>استاد تمام مهندسی محیط زیست، دانشگاه تهران</span>
+              </div>
+            </div>
+            <div class="demo-card" data-demo="karbassi">
+              <div class="demo-avatar">AK</div>
+              <div class="demo-info">
+                <strong>دکتر احمدرضا کرباسی</strong>
+                <span>استاد مهندسی محیط زیست و آلودگی دریا</span>
+              </div>
+            </div>
+            <div class="demo-card" data-demo="aghayani">
+              <div class="demo-avatar">SA</div>
+              <div class="demo-info">
+                <strong>سهیل آقایانی</strong>
+                <span>پژوهشگر ارشد مهندسی محیط زیست و بیودیزل</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Bookmarklet -->
+        <div class="tab-content" id="tab-content-bookmarklet" role="tabpanel" aria-labelledby="tab-btn-bookmarklet">
+          <div class="bookmarklet-box">
+            <div class="bookmarklet-copy">
+              <strong>دکمهٔ زیر را به نوار بوک‌مارک‌های مرورگر خود (Bookmarks Bar) بکشید:</strong>
+              <p>سپس در هر صفحه‌ای از پژوهشگران در سایت سیویلیکا (Civilica)، با یک کلیک روی این دکمه، تمام مقالات مستقیماً به CivilicaPulse منتقل می‌شوند!</p>
+            </div>
+            <a class="bookmarklet-btn" id="bookmarklet-link" href="javascript:(function(){var h=document.documentElement.outerHTML;localStorage.setItem('civilica_import_html',h);window.open('https://soheil-aghayani.github.io/CivilicaPulse/','_blank');})();" title="این دکمه را بکشید و در بوک‌مارک‌های مرورگر رها کنید">
+              <svg class="icon" aria-hidden="true"><use href="#icon-bookmark"></use></svg>
+              <span>📥 استخراج با CivilicaPulse</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Status / Spinner -->
+        <div class="status-bar" id="scrape-status">
+          <div class="spinner"></div>
+          <div>
+            <h4 id="status-title">در حال دریافت مقالات...</h4>
+            <p id="status-desc">لطفاً چند لحظه صبر کنید.</p>
+          </div>
+        </div>
       </section>
 
-      <section id="results-section" class="results-section" hidden aria-labelledby="results-title">
-        <div class="profile-summary panel">
-          <div class="profile-summary-main">
-            <div class="profile-avatar" aria-hidden="true">
-              <svg class="profile-identicon" aria-hidden="true"></svg>
+      <!-- Researcher Details & 5 KPI Cards -->
+      <section class="author-card" id="author-card">
+        <div class="author-header">
+          <div class="author-identity">
+            <div class="author-avatar" id="author-avatar">
+              <span id="author-initials">—</span>
             </div>
-            <div>
-              <h2 id="results-title">—</h2>
-              <a id="profile-source" class="source-link" href="#" target="_blank" rel="noreferrer">
+            <div class="author-details">
+              <h2 id="author-name">پروفسور ناصر مهردادی</h2>
+              <p class="affil" id="author-affil">استاد تمام گروه مهندسی محیط زیست، دانشکده محیط زیست، دانشگاه تهران</p>
+              <a class="author-link" id="author-link" href="https://civilica.com/p/176225/" target="_blank" rel="noreferrer">
+                <span>مشاهدهٔ پروفایل اصلی در سیویلیکا</span>
                 <svg class="icon" aria-hidden="true"><use href="#icon-external"></use></svg>
-                مشاهدهٔ صفحه در سیویلیکا
               </a>
             </div>
           </div>
-          <div class="summary-stats" aria-label="خلاصهٔ نتایج">
-            <div class="stat"><strong id="total-count">0</strong><span>مقاله</span></div>
-            <div class="stat"><strong id="conference-count">0</strong><span>کنفرانسی</span></div>
-            <div class="stat"><strong id="journal-count">0</strong><span>ژورنالی</span></div>
-          </div>
         </div>
 
-        <div class="results-toolbar panel">
-          <div class="toolbar-top">
-            <div>
-              <p class="section-kicker">مرحلهٔ دوم</p>
-              <h2>مقاله‌ها را انتخاب کنید</h2>
-            </div>
-            <div class="toolbar-actions">
-              <button class="button button-primary" id="select-all-button" type="button">
-                <svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>
-                انتخاب همهٔ مقاله‌ها
-              </button>
-              <button class="button button-quiet icon-button icon-only-button selection-scope-button"
-                      id="select-visible-button" type="button"
-                      aria-label="انتخاب این صفحه" title="انتخاب این صفحه">
-                <svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>
-                <span class="sr-only">انتخاب این صفحه</span>
-              </button>
-            </div>
+        <!-- 5 KPI Cards -->
+        <div class="metrics-row" aria-label="شاخص‌های عملکرد پژوهشگر">
+          <div class="metric-card">
+            <span class="metric-label">کل مقالات</span>
+            <span class="metric-val" id="metric-total">۱۲</span>
+            <span class="metric-sub">نمایه‌شده در سیویلیکا</span>
           </div>
-          <div class="filter-row">
-            <div class="filter-controls">
-              <label class="search-filter">
-                <svg class="icon" aria-hidden="true"><use href="#icon-filter"></use></svg>
-                <span class="sr-only">جست‌وجو در عنوان مقاله‌ها</span>
-                <input id="article-filter" type="search" placeholder="جست‌وجو در عنوان مقاله‌ها">
-              </label>
-              <div class="filter-pills" role="group" aria-label="فیلتر نوع مقاله">
-                <button class="filter-pill is-active" type="button" data-filter="all">همه</button>
-                <button class="filter-pill" type="button" data-filter="مقاله کنفرانسی">کنفرانسی</button>
-                <button class="filter-pill" type="button" data-filter="مقاله ژورنالی">ژورنالی</button>
-                <button class="filter-pill" type="button" data-filter="طرح پژوهشی">طرح پژوهشی</button>
-              </div>
-            </div>
-            <label class="page-size-control" for="page-size">
-              <span>مقاله در هر صفحه</span>
-              <select id="page-size" dir="ltr" aria-label="تعداد مقاله در هر صفحه">
-                <option value="5">۵</option>
-                <option value="10" selected>۱۰</option>
-              </select>
-            </label>
+          <div class="metric-card">
+            <span class="metric-label">مقالات کنفرانسی</span>
+            <span class="metric-val" id="metric-conf">۵</span>
+            <span class="metric-sub">همایش‌های ملی و بین‌المللی</span>
           </div>
-        </div>
-
-        <div class="format-panel panel">
-          <div class="format-heading">
-            <div>
-              <p class="section-kicker">مرحلهٔ سوم</p>
-              <h2>سبک ارجاع و فایل خروجی</h2>
-            </div>
+          <div class="metric-card">
+            <span class="metric-label">مقالات ژورنالی</span>
+            <span class="metric-val" id="metric-journal">۶</span>
+            <span class="metric-sub">نشریات علمی معتبر</span>
           </div>
-          <div class="format-controls">
-            <div class="style-control">
-              <span class="field-label">سبک ارجاع</span>
-              <div class="citation-style-pills" role="group" aria-label="انتخاب سبک ارجاع">
-                <button class="citation-style-pill is-active" type="button" data-style="apa7" dir="ltr">APA ۷th</button>
-                <button class="citation-style-pill" type="button" data-style="vancouver" dir="ltr">Vancouver</button>
-                <button class="citation-style-pill" type="button" data-style="ieee" dir="ltr">IEEE</button>
-                <button class="citation-style-pill" type="button" data-style="harvard" dir="ltr">Harvard</button>
-                <button class="citation-style-pill" type="button" data-style="chicago" dir="ltr">Chicago</button>
-                <button class="citation-style-pill" type="button" data-style="mla" dir="ltr">MLA ۹th</button>
-                <button class="citation-style-pill" type="button" data-style="bibtex" dir="ltr">BibTeX</button>
-              </div>
-            </div>
-            <label class="file-type-control" for="word-file-type">
-              <span class="field-label">نوع فایل Word</span>
-              <select id="word-file-type">
-                <option value="docx">Word استاندارد (.docx)</option>
-                <option value="doc">Word سازگار قدیمی (.doc)</option>
-              </select>
-            </label>
+          <div class="metric-card">
+            <span class="metric-label">طرح‌های پژوهشی</span>
+            <span class="metric-val" id="metric-research">۱</span>
+            <span class="metric-sub">پروژه‌های مصوب</span>
           </div>
-          <label class="link-option" for="include-civilica-links">
-            <input id="include-civilica-links" type="checkbox" checked>
-            <span>افزودن لینک مقاله‌های سیویلیکا به فایل Word</span>
-          </label>
-        </div>
-
-        <div id="results-list" class="results-list" aria-live="polite"></div>
-        <nav class="pagination-bar" id="pagination" aria-label="صفحه‌بندی مقاله‌ها" hidden>
-          <button class="button button-quiet pagination-button icon-button" id="previous-page" type="button"
-                  aria-label="صفحهٔ قبل" title="صفحهٔ قبل">
-            <span class="asset-icon asset-icon-chevron-right" aria-hidden="true"></span>
-          </button>
-          <span class="pagination-status" id="pagination-status" aria-live="polite"></span>
-          <button class="button button-quiet pagination-button icon-button" id="next-page" type="button"
-                  aria-label="صفحهٔ بعد" title="صفحهٔ بعد">
-            <span class="asset-icon asset-icon-chevron-left" aria-hidden="true"></span>
-          </button>
-        </nav>
-        <div id="empty-results" class="empty-state panel" hidden>
-          <svg class="empty-icon icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-          <h3>مقاله‌ای با این فیلتر پیدا نشد.</h3>
-          <p>فیلتر یا عبارت جست‌وجو را تغییر دهید.</p>
-        </div>
-
-        <div class="export-bar panel">
-          <div>
-            <p class="section-kicker">مرحلهٔ چهارم</p>
-            <h2><span id="selected-count">0</span> مقاله برای خروجی آماده است</h2>
+          <div class="metric-card">
+            <span class="metric-label">بازهٔ انتشار</span>
+            <span class="metric-val" id="metric-span">۱۳۹۶ - ۱۴۰۲</span>
+            <span class="metric-sub">سوابق علمی فعال</span>
           </div>
-          <button class="button button-primary icon-button icon-only-button export-icon-button" id="export-button" type="button"
-                  aria-label="دریافت فایل Word" title="دریافت فایل Word" disabled>
-            <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
-            <span class="sr-only">دریافت فایل Word</span>
-          </button>
         </div>
       </section>
 
+      <!-- Control Deck (View Switcher, Filters, Citation Styles, Exports) -->
+      <section class="control-deck" id="control-deck">
+        <!-- Top Row: Views + Search -->
+        <div class="control-row">
+          <div class="view-modes" role="group" aria-label="انتخاب حالت نمایش">
+            <button class="view-btn active" id="view-btn-cards" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#icon-cards"></use></svg>
+              <span>نمای ارجاعات</span>
+            </button>
+            <button class="view-btn" id="view-btn-table" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#icon-table"></use></svg>
+              <span>جدول داده‌ها</span>
+            </button>
+            <button class="view-btn" id="view-btn-analytics" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#icon-chart"></use></svg>
+              <span>آمار و تحلیل</span>
+            </button>
+          </div>
+
+          <div class="search-filter-wrap">
+            <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+            <input id="article-filter" type="search" placeholder="جست‌وجو در عنوان، سال، محل انتشار...">
+          </div>
+        </div>
+
+        <!-- Middle Row: Filter Pills + Citation Styles -->
+        <div class="control-row">
+          <div class="pills-group" id="type-pills" role="group" aria-label="فیلتر نوع مقاله">
+            <button class="pill-btn active" type="button" data-filter="all">همه (<span id="count-all">۱۲</span>)</button>
+            <button class="pill-btn" type="button" data-filter="مقاله کنفرانسی">کنفرانسی (<span id="count-conf">۵</span>)</button>
+            <button class="pill-btn" type="button" data-filter="مقاله ژورنالی">ژورنالی (<span id="count-journal">۶</span>)</button>
+            <button class="pill-btn" type="button" data-filter="طرح پژوهشی">طرح پژوهشی (<span id="count-research">۱</span>)</button>
+          </div>
+
+          <div class="pills-group" id="style-pills" role="group" aria-label="سبک استناددهی">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">سبک استناد:</span>
+            <button class="pill-btn active" type="button" data-style="apa7">APA 7th</button>
+            <button class="pill-btn" type="button" data-style="vancouver">Vancouver</button>
+            <button class="pill-btn" type="button" data-style="ieee">IEEE</button>
+            <button class="pill-btn" type="button" data-style="harvard">Harvard</button>
+            <button class="pill-btn" type="button" data-style="chicago">Chicago</button>
+            <button class="pill-btn" type="button" data-style="mla">MLA 9th</button>
+            <button class="pill-btn" type="button" data-style="bibtex">BibTeX</button>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Export Actions Bar -->
+        <div class="export-row">
+          <div class="export-group">
+            <button class="btn-primary" id="btn-export-word" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
+              <span>دریافت فایل Word (.docx)</span>
+            </button>
+            <button class="btn-secondary" id="btn-copy-all" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#icon-copy"></use></svg>
+              <span>کپی همهٔ ارجاعات</span>
+            </button>
+            <button class="btn-secondary" id="btn-export-bib" type="button">
+              <span>BibTeX (.bib)</span>
+            </button>
+            <button class="btn-secondary" id="btn-export-csv" type="button">
+              <span>CSV</span>
+            </button>
+            <button class="btn-secondary" id="btn-export-json" type="button">
+              <span>JSON</span>
+            </button>
+            <button class="btn-secondary" id="btn-print" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#icon-print"></use></svg>
+              <span>چاپ</span>
+            </button>
+          </div>
+
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted);">
+            <span id="selected-badge">۱۲</span> مقاله انتخاب شده
+          </div>
+        </div>
+      </section>
+
+      <!-- View 1: References Cards -->
+      <section class="references-list" id="references-view" aria-label="فهرست کارت‌های مقالات">
+        <!-- Rendered dynamically by app.js -->
+      </section>
+
+      <!-- View 2: Data Table -->
+      <section class="table-wrap" id="table-view" aria-label="جدول داده‌های مقالات">
+        <table class="papers-table">
+          <thead>
+            <tr>
+              <th style="width: 40px;"><input type="checkbox" id="table-select-all" checked aria-label="انتخاب همه"></th>
+              <th style="width: 50px;">ردیف</th>
+              <th>عنوان مقاله</th>
+              <th>نوع انتشار</th>
+              <th>سال</th>
+              <th>محل انتشار / همایش / ژورنال</th>
+              <th>لینک سیویلیکا</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- Rendered dynamically by app.js -->
+          </tbody>
+        </table>
+      </section>
+
+      <!-- View 3: Analytics Dashboard -->
+      <section class="analytics-wrap" id="analytics-view" aria-label="تحلیل و نمودارهای آماری">
+        <div class="analytics-grid">
+          <div class="chart-card">
+            <h3>
+              <svg class="icon" aria-hidden="true"><use href="#icon-chart"></use></svg>
+              <span>روند انتشار مقالات بر اساس سال</span>
+            </h3>
+            <div id="chart-years"></div>
+          </div>
+          <div class="chart-card">
+            <h3>
+              <svg class="icon" aria-hidden="true"><use href="#icon-filter"></use></svg>
+              <span>ترکیب نوع مقالات (کنفرانسی / ژورنالی)</span>
+            </h3>
+            <div id="chart-types"></div>
+          </div>
+          <div class="chart-card" style="grid-column: 1 / -1;">
+            <h3>
+              <svg class="icon" aria-hidden="true"><use href="#icon-cards"></use></svg>
+              <span>پرتکرارترین نشریات و همایش‌های علمی</span>
+            </h3>
+            <div id="chart-venues"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pagination -->
+      <nav class="pagination-bar" id="pagination" aria-label="صفحه‌بندی مقالات">
+        <button class="btn-secondary" id="prev-page" type="button">
+          <svg class="icon" aria-hidden="true"><use href="#icon-chevron-right"></use></svg>
+          <span>صفحهٔ قبل</span>
+        </button>
+        <span class="pagination-status" id="pagination-info">صفحه ۱ از ۱</span>
+        <button class="btn-secondary" id="next-page" type="button">
+          <span>صفحهٔ بعد</span>
+          <svg class="icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg>
+        </button>
+      </nav>
+
     </main>
 
+    <!-- Toast Notification -->
+    <div class="toast" id="toast" role="status" aria-live="polite">
+      <svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>
+      <span id="toast-message">متن با موفقیت کپی شد.</span>
+    </div>
+
+    <!-- Footer -->
     <footer class="site-footer">
       <div class="shell footer-inner">
-        <span>استخراج‌گر مقالات سیویلیکا</span>
-        <span>طراحی‌شده توسط <a href="https://github.com/Soheil-Aghayani/CivilicaPulse.git" target="_blank" rel="noreferrer">سهیل آقایانی</a></span>
+        <span>CivilicaPulse — ابزار تخصصی استخراج و استناد مقالات پژوهشی سیویلیکا</span>
+        <span>طراحی و توسعه توسط <a href="https://soheil-aghayani.github.io/" target="_blank" rel="noreferrer">سهیل آقایانی</a></span>
       </div>
     </footer>
 
-    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-    <script src="assets/vendor/jdenticon.min.js" defer></script>
     <script src="config.js" defer></script>
     <script src="app.js" defer></script>
   </body>
