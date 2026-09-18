@@ -29,9 +29,92 @@
   };
 
   var apiBaseUrl = String(window.CIVILICA_API_BASE_URL || "").replace(/\/+$/, "");
+  var profileFallbackProxy = "https://api.cors.lol/?url=";
+  var backendRequestTimeout = 15000;
+  var fallbackRequestTimeout = 30000;
 
   function apiUrl(path) {
     return apiBaseUrl + path;
+  }
+
+  function fetchWithTimeout(url, options, timeoutMs) {
+    var controller = typeof AbortController === "function" ? new AbortController() : null;
+    var requestOptions = Object.assign({}, options || {});
+    var timer = null;
+    if (controller) requestOptions.signal = controller.signal;
+
+    var request = fetch(url, requestOptions);
+    if (!controller) return request;
+
+    timer = window.setTimeout(function () {
+      controller.abort();
+    }, timeoutMs);
+    return request.finally(function () {
+      window.clearTimeout(timer);
+    });
+  }
+
+  function shouldUseProfileFallback(error) {
+    return !error || error.name === "TypeError" || error.name === "AbortError" || error.name === "SyntaxError";
+  }
+
+  function userFacingError(error, fallbackMessage) {
+    if (error && error.name === "AbortError") {
+      return "پاسخ سرور دیر رسید؛ دوباره تلاش کنید یا حالت HTML را انتخاب کنید.";
+    }
+    if (error && error.name === "TypeError") {
+      return "اتصال به سرویس برقرار نشد؛ DNS یا شبکه را بررسی کنید یا حالت HTML را انتخاب کنید.";
+    }
+    return (error && error.message) || fallbackMessage;
+  }
+
+  function setScrapeStatus(title, description) {
+    var titleEl = document.getElementById("status-title");
+    var descEl = document.getElementById("status-desc");
+    if (titleEl) titleEl.textContent = title;
+    if (descEl) descEl.textContent = description;
+  }
+
+  async function requestProfileFromBackend(profileUrl) {
+    var response = await fetchWithTimeout(apiUrl("/api/parse-profile"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: profileUrl })
+    }, backendRequestTimeout);
+    var payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || "دریافت پروفایل انجام نشد.");
+    return payload;
+  }
+
+  async function requestProfileFromFallback(profileUrl) {
+    var proxyUrl = profileFallbackProxy + encodeURIComponent(profileUrl);
+    var response = await fetchWithTimeout(proxyUrl, {
+      headers: { "Accept": "text/html" }
+    }, fallbackRequestTimeout);
+    if (!response.ok) throw new Error("مسیر جایگزین دریافت صفحه در دسترس نیست.");
+
+    var html = await response.text();
+    var parsed = parseCivilicaHtml(html, profileUrl);
+    if (!parsed || !Array.isArray(parsed.articles) || !parsed.articles.length) {
+      throw new Error("مقاله‌ای در این پروفایل پیدا نشد.");
+    }
+    return {
+      ok: true,
+      profile: parsed.profile,
+      articles: parsed.articles,
+      count: parsed.articles.length,
+      source: "browser-fallback"
+    };
+  }
+
+  async function requestProfile(profileUrl, onFallback) {
+    try {
+      return await requestProfileFromBackend(profileUrl);
+    } catch (error) {
+      if (!shouldUseProfileFallback(error)) throw error;
+      if (onFallback) onFallback();
+      return requestProfileFromFallback(profileUrl);
+    }
   }
 
   function setResultsVisible(visible) {
@@ -694,7 +777,7 @@
       downloadBlob(blob, filename);
       showToast("فایل Word آماده شد.");
     } catch (error) {
-      showToast(error.message || "ساخت فایل Word انجام نشد.");
+      showToast(userFacingError(error, "ساخت فایل Word انجام نشد."));
     } finally {
       if (exportButton) exportButton.disabled = false;
     }
@@ -1058,7 +1141,7 @@
           if (!loadDataset(payload)) throw new Error("مقاله‌ای در HTML پیدا نشد.");
           showToast(toPersianDigits(payload.count || payload.articles.length) + " مقاله آماده شد.");
         } catch (error) {
-          showToast(error.message || "پردازش HTML انجام نشد.");
+          showToast(userFacingError(error, "پردازش HTML انجام نشد."));
         } finally {
           parseBtn.disabled = false;
         }
@@ -1127,20 +1210,17 @@
       if (!/^https?:\/\//i.test(url)) url = "https://civilica.com/p/" + url.replace(/\D/g, "") + "/";
 
       var statusEl = document.getElementById("scrape-status");
+      setScrapeStatus("در حال دریافت مقالات...", "لطفاً چند لحظه صبر کنید.");
       statusEl.style.display = "flex";
 
       try {
-        var response = await fetch(apiUrl("/api/parse-profile"), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url: url })
+        var payload = await requestProfile(url, function () {
+          setScrapeStatus("در حال استفاده از مسیر جایگزین...", "اتصال اصلی در دسترس نبود؛ صفحهٔ عمومی سیویلیکا در حال پردازش است.");
         });
-        var payload = await response.json();
-        if (!response.ok) throw new Error(payload.error || "دریافت پروفایل انجام نشد.");
         if (!loadDataset(payload)) throw new Error("مقاله‌ای در این پروفایل پیدا نشد.");
         showToast(toPersianDigits(payload.count || payload.articles.length) + " مقاله آماده شد.");
       } catch (err) {
-        showToast(err.message || "دریافت پروفایل انجام نشد.");
+        showToast(userFacingError(err, "اتصال برقرار نشد؛ حالت HTML را امتحان کنید."));
       } finally {
         statusEl.style.display = "none";
       }
