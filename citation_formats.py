@@ -74,6 +74,7 @@ def format_citation(
     index: int,
     style: object,
     fallback_author: str,
+    include_url: bool = True,
 ) -> str:
     """Return one citation using only the metadata available for an article."""
 
@@ -82,7 +83,7 @@ def format_citation(
     title = citation_title(article)
     venue = citation_venue(article)
     year = citation_year(article)
-    url = citation_url(article)
+    url = citation_url(article) if include_url else ""
     venue_part = f" {venue}." if venue else ""
     url_part = f" {url}" if url else ""
 
@@ -107,12 +108,13 @@ def format_citation(
     key_source = re.sub(r"[^A-Za-z0-9]+", "", authors) or "author"
     article_id = clean_text(article.get("id"), str(index))
     key = f"civilica_{key_source[:24]}_{article_id}"
+    url_line = f"  url = {{{url}}},\n" if url else ""
     return (
         f"@misc{{{key},\n"
         f"  author = {{{authors}}},\n"
         f"  title = {{{title}}},\n"
         f"  year = {{{year if year != 'n.d.' else ''}}},\n"
         f"  howpublished = {{{venue}}},\n"
-        f"  url = {{{url}}}\n"
+        f"{url_line}"
         f"}}"
     )

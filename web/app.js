@@ -7,7 +7,8 @@
     selected: new Set(),
     filter: "all",
     query: "",
-    citationStyle: "apa7"
+    citationStyle: "apa7",
+    includeLinks: true
   };
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -22,6 +23,7 @@
     parseHtmlButton: document.getElementById("parse-html-button"),
     resultsSection: document.getElementById("results-section"),
     resultsTitle: document.getElementById("results-title"),
+    profileIdenticon: document.querySelector(".profile-identicon"),
     profileSource: document.getElementById("profile-source"),
     totalCount: document.getElementById("total-count"),
     conferenceCount: document.getElementById("conference-count"),
@@ -30,11 +32,11 @@
     emptyResults: document.getElementById("empty-results"),
     articleFilter: document.getElementById("article-filter"),
     selectVisible: document.getElementById("select-visible-button"),
-    clearSelection: document.getElementById("clear-selection-button"),
     selectedCount: document.getElementById("selected-count"),
     exportButton: document.getElementById("export-button"),
     citationStylePills: document.querySelectorAll(".citation-style-pill"),
     wordFileType: document.getElementById("word-file-type"),
+    includeLinks: document.getElementById("include-civilica-links"),
     toast: document.getElementById("toast")
   };
 
@@ -51,10 +53,22 @@
       .replace(/'/g, "&#039;");
   }
 
-  function toPersianDigits(value) {
-    return String(value).replace(/\d/g, function (digit) {
-      return "۰۱۲۳۴۵۶۷۸۹"[digit];
+  function toEnglishDigits(value) {
+    return String(value).replace(/[۰-۹٠-٩]/g, function (digit) {
+      var persian = "۰۱۲۳۴۵۶۷۸۹".indexOf(digit);
+      if (persian >= 0) {
+        return String(persian);
+      }
+      return String("٠١٢٣٤٥٦٧٨٩".indexOf(digit));
     });
+  }
+
+  function renderProfileAvatar() {
+    var identity = state.profile.id || state.profile.url || state.profile.name || "civilica";
+    elements.profileIdenticon.setAttribute("data-jdenticon-value", identity);
+    if (window.jdenticon && typeof window.jdenticon.update === "function") {
+      window.jdenticon.update(elements.profileIdenticon, identity);
+    }
   }
 
   function showToast(message) {
@@ -110,6 +124,7 @@
     state.filter = "all";
     state.query = "";
     state.citationStyle = "apa7";
+    state.includeLinks = true;
 
     elements.articleFilter.value = "";
     document.querySelectorAll(".filter-pill").forEach(function (pill) {
@@ -119,16 +134,18 @@
       pill.classList.toggle("is-active", pill.dataset.style === state.citationStyle);
     });
     elements.wordFileType.value = "docx";
+    elements.includeLinks.checked = true;
 
     elements.resultsTitle.textContent = state.profile.name || "پژوهشگر سیویلیکا";
+    renderProfileAvatar();
     elements.profileSource.href = state.profile.url || "#";
-    elements.totalCount.textContent = toPersianDigits(state.articles.length);
-    elements.conferenceCount.textContent = toPersianDigits(
+    elements.totalCount.textContent = toEnglishDigits(state.articles.length);
+    elements.conferenceCount.textContent = toEnglishDigits(
       state.articles.filter(function (article) {
         return article.type === "مقاله کنفرانسی";
       }).length
     );
-    elements.journalCount.textContent = toPersianDigits(
+    elements.journalCount.textContent = toEnglishDigits(
       state.articles.filter(function (article) {
         return article.type === "مقاله ژورنالی";
       }).length
@@ -160,10 +177,10 @@
     elements.resultsList.innerHTML = visible.map(function (article) {
       var selected = state.selected.has(article.id);
       var articleId = escapeHtml(article.id);
-      var title = escapeHtml(toPersianDigits(article.title || "بدون عنوان"));
-      var venue = escapeHtml(toPersianDigits(article.venue || "محل انتشار نامشخص"));
-      var year = escapeHtml(toPersianDigits(article.year || "—"));
-      var type = escapeHtml(toPersianDigits(article.type || "مقاله"));
+      var title = escapeHtml(toEnglishDigits(article.title || "بدون عنوان"));
+      var venue = escapeHtml(toEnglishDigits(article.venue || "محل انتشار نامشخص"));
+      var year = escapeHtml(toEnglishDigits(article.year || "—"));
+      var type = escapeHtml(toEnglishDigits(article.type || "مقاله"));
       var url = escapeHtml(article.url || "#");
       var number = state.articles.indexOf(article) + 1;
       return (
@@ -181,7 +198,7 @@
               icon("external") + "مشاهده در سیویلیکا" +
             "</a>" +
           "</div>" +
-          '<span class="article-index" aria-hidden="true">' + toPersianDigits(number) + "</span>" +
+          '<span class="article-index" aria-hidden="true">' + toEnglishDigits(number) + "</span>" +
         "</article>"
       );
     }).join("");
@@ -192,13 +209,13 @@
 
   function updateSelectionUi(visible) {
     var count = state.selected.size;
-    elements.selectedCount.textContent = toPersianDigits(count);
+    elements.selectedCount.textContent = toEnglishDigits(count);
     elements.exportButton.disabled = count === 0;
     var allVisibleSelected = visible.length > 0 && visible.every(function (article) {
       return state.selected.has(article.id);
     });
     elements.selectVisible.innerHTML = allVisibleSelected
-      ? icon("close") + "لغو انتخاب این فهرست"
+      ? icon("close") + "لغو انتخاب"
       : icon("check") + "انتخاب همه";
   }
 
@@ -236,7 +253,8 @@
           profile: state.profile,
           articles: selectedArticles,
           style: state.citationStyle,
-          file_type: fileType
+          file_type: fileType,
+          include_links: state.includeLinks
         })
       });
       if (!response.ok) {
@@ -335,9 +353,8 @@
   });
 
   elements.selectVisible.addEventListener("click", toggleVisibleSelection);
-  elements.clearSelection.addEventListener("click", function () {
-    state.selected = new Set();
-    renderResults();
+  elements.includeLinks.addEventListener("change", function () {
+    state.includeLinks = elements.includeLinks.checked;
   });
   elements.exportButton.addEventListener("click", exportWord);
 })();

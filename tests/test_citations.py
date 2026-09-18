@@ -50,13 +50,26 @@ class WordExportTests(unittest.TestCase):
         )
         document = Document(BytesIO(response.data))
         citation = document.paragraphs[-1]
-        self.assertIn("۱۴۰۲", citation.text)
+        self.assertIn("1402", citation.text)
         self.assertIn("https://civilica.com/doc/12/", citation.text)
         self.assertIn("w:bidi", citation._p.xml)
         self.assertIn("B Nazanin", {run.font.name for run in citation.runs})
         self.assertIn("Times New Roman", {run.font.name for run in citation.runs})
-        self.assertIn(10.0, {run.font.size.pt for run in citation.runs if run.font.size})
-        self.assertIn(9.0, {run.font.size.pt for run in citation.runs if run.font.size})
+        self.assertIn(14.0, {run.font.size.pt for run in citation.runs if run.font.size})
+        self.assertIn(13.0, {run.font.size.pt for run in citation.runs if run.font.size})
+        self.assertIn('w:val="right"', document.paragraphs[0]._p.xml)
+
+    def test_docx_can_omit_civilica_links(self):
+        response = self.client.post(
+            "/api/export-word",
+            json={**self.payload, "file_type": "docx", "include_links": False},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        document = Document(BytesIO(response.data))
+        text = "\n".join(paragraph.text for paragraph in document.paragraphs)
+        self.assertNotIn("https://civilica.com", text)
+        self.assertIn("صفحهٔ پژوهشگر سیویلیکا", text)
 
     def test_doc_compatibility_export_is_word_readable(self):
         response = self.client.post(
@@ -69,7 +82,7 @@ class WordExportTests(unittest.TestCase):
         self.assertTrue(response.data.startswith(b"\xef\xbb\xbf<!doctype html"))
         self.assertIn("B Nazanin".encode(), response.data)
         self.assertIn("Times New Roman".encode(), response.data)
-        self.assertIn("۱۴۰۲".encode(), response.data)
+        self.assertIn("1402".encode(), response.data)
         self.assertIn(b"/doc/12/", response.data)
 
 

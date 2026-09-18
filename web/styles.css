@@ -181,15 +181,18 @@ a {
   display: grid;
   width: 44px;
   height: 44px;
+  overflow: hidden;
   place-items: center;
   border-radius: 12px;
   color: #fff;
   background: var(--primary);
 }
 
-.brand-mark .icon {
-  width: 24px;
-  height: 24px;
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .brand-copy {
@@ -208,19 +211,10 @@ a {
   font-size: 11px;
 }
 
-.local-badge,
 .step-number,
 .filter-pill {
   color: var(--primary);
   background: #e9f0f8;
-}
-
-.local-badge {
-  padding: 5px 10px;
-  border: 1px solid #d5e1ee;
-  border-radius: 999px;
-  font-size: 12px;
-  white-space: nowrap;
 }
 
 .page-main {
@@ -524,15 +518,17 @@ input[type="checkbox"]:focus-visible {
   width: 56px;
   height: 56px;
   flex: 0 0 auto;
+  overflow: hidden;
   place-items: center;
   border-radius: 15px;
   color: var(--primary);
   background: #e9f0f8;
 }
 
-.profile-avatar .icon {
-  width: 29px;
-  height: 29px;
+.profile-identicon {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .profile-summary h2 {
@@ -657,6 +653,7 @@ input[type="checkbox"]:focus-visible {
   grid-template-columns: auto 1fr auto;
   align-items: start;
   gap: 14px;
+  direction: ltr;
   padding: 18px 20px;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -679,11 +676,14 @@ input[type="checkbox"]:focus-visible {
   width: 18px;
   height: 18px;
   margin-top: 4px;
+  justify-self: start;
   accent-color: var(--primary);
 }
 
 .article-content {
   min-width: 0;
+  direction: rtl;
+  text-align: right;
 }
 
 .article-title {
@@ -700,6 +700,7 @@ input[type="checkbox"]:focus-visible {
   flex-wrap: wrap;
   gap: 7px 10px;
   margin-top: 8px;
+  direction: rtl;
   color: var(--muted);
   font-size: 12px;
 }
@@ -741,7 +742,9 @@ input[type="checkbox"]:focus-visible {
   min-width: 28px;
   color: var(--muted);
   font-size: 12px;
-  text-align: center;
+  direction: ltr;
+  text-align: right;
+  justify-self: end;
 }
 
 .empty-state {
@@ -853,6 +856,29 @@ input[type="checkbox"]:focus-visible {
   line-height: 1.7;
 }
 
+.link-option {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--soft);
+  color: var(--primary-strong);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.link-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex: 0 0 auto;
+  padding: 0;
+  accent-color: var(--primary);
+}
+
 .export-bar {
   position: sticky;
   bottom: 16px;
@@ -906,6 +932,15 @@ input[type="checkbox"]:focus-visible {
 
 .footer-inner {
   min-height: 68px;
+}
+
+.footer-inner a {
+  color: var(--secondary);
+  text-decoration: none;
+}
+
+.footer-inner a:hover {
+  text-decoration: underline;
 }
 
 .toast {
@@ -1009,8 +1044,7 @@ input[type="checkbox"]:focus-visible {
     font-size: 14px;
   }
 
-  .brand-caption,
-  .local-badge {
+  .brand-caption {
     display: none;
   }
 
@@ -1049,12 +1083,8 @@ input[type="checkbox"]:focus-visible {
   }
 
   .article-card {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     padding: 15px;
-  }
-
-  .article-index {
-    display: none;
   }
 
   .article-card .article-link {

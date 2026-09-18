@@ -54,13 +54,12 @@
     <header class="site-header">
       <div class="shell header-inner">
         <a class="brand" href="/" aria-label="صفحهٔ اصلی استخراج مقالات سیویلیکا">
-          <span class="brand-mark"><svg class="icon"><use href="#icon-file-search"></use></svg></span>
+          <span class="brand-mark"><img src="/assets/civilicapulse-mark.webp" alt="" width="44" height="44"></span>
           <span class="brand-copy">
             <span class="brand-name">استخراج مقالات سیویلیکا</span>
             <span class="brand-caption">ابزار پژوهشی فارسی</span>
           </span>
         </a>
-        <span class="local-badge">محلی و بدون API</span>
       </div>
     </header>
 
@@ -80,7 +79,7 @@
             <p class="section-kicker">مرحلهٔ اول</p>
             <h2 id="import-title">آدرس صفحهٔ پژوهشگر</h2>
           </div>
-          <span class="step-number">۱</span>
+          <span class="step-number">1</span>
         </div>
 
         <form id="profile-form" novalidate>
@@ -130,7 +129,7 @@
         <div class="profile-summary panel">
           <div class="profile-summary-main">
             <div class="profile-avatar" aria-hidden="true">
-              <svg class="icon"><use href="#icon-file-search"></use></svg>
+              <svg class="profile-identicon" aria-hidden="true"></svg>
             </div>
             <div>
               <p class="section-kicker">پژوهشگر پیدا شد</p>
@@ -142,9 +141,9 @@
             </div>
           </div>
           <div class="summary-stats" aria-label="خلاصهٔ نتایج">
-            <div class="stat"><strong id="total-count">۰</strong><span>مقاله</span></div>
-            <div class="stat"><strong id="conference-count">۰</strong><span>کنفرانسی</span></div>
-            <div class="stat"><strong id="journal-count">۰</strong><span>ژورنالی</span></div>
+            <div class="stat"><strong id="total-count">0</strong><span>مقاله</span></div>
+            <div class="stat"><strong id="conference-count">0</strong><span>کنفرانسی</span></div>
+            <div class="stat"><strong id="journal-count">0</strong><span>ژورنالی</span></div>
           </div>
         </div>
 
@@ -159,7 +158,6 @@
                 <svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>
                 انتخاب همه
               </button>
-              <button class="button button-quiet" id="clear-selection-button" type="button">لغو انتخاب</button>
             </div>
           </div>
           <div class="filter-row">
@@ -175,13 +173,6 @@
               <button class="filter-pill" type="button" data-filter="طرح پژوهشی">طرح پژوهشی</button>
             </div>
           </div>
-        </div>
-
-        <div id="results-list" class="results-list" aria-live="polite"></div>
-        <div id="empty-results" class="empty-state panel" hidden>
-          <svg class="empty-icon icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-          <h3>مقاله‌ای با این فیلتر پیدا نشد.</h3>
-          <p>فیلتر یا عبارت جست‌وجو را تغییر دهید.</p>
         </div>
 
         <div class="format-panel panel">
@@ -213,14 +204,25 @@
               </select>
             </label>
           </div>
+          <label class="link-option" for="include-civilica-links">
+            <input id="include-civilica-links" type="checkbox" checked>
+            <span>افزودن لینک مقاله‌های سیویلیکا به فایل Word</span>
+          </label>
           <p class="format-help">هر دو فایل در Word باز می‌شوند؛ DOCX فرمت استاندارد امروزی و DOC گزینهٔ سازگاری قدیمی است.</p>
           <p class="format-help">اگر نام نویسندگان در صفحهٔ عمومی سیویلیکا نباشد، نام پژوهشگر به‌عنوان جایگزین می‌آید و باید قبل از استناد نهایی بررسی شود.</p>
+        </div>
+
+        <div id="results-list" class="results-list" aria-live="polite"></div>
+        <div id="empty-results" class="empty-state panel" hidden>
+          <svg class="empty-icon icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+          <h3>مقاله‌ای با این فیلتر پیدا نشد.</h3>
+          <p>فیلتر یا عبارت جست‌وجو را تغییر دهید.</p>
         </div>
 
         <div class="export-bar panel">
           <div>
             <p class="section-kicker">مرحلهٔ چهارم</p>
-            <h2><span id="selected-count">۰</span> مقاله برای خروجی آماده است</h2>
+            <h2><span id="selected-count">0</span> مقاله برای خروجی آماده است</h2>
           </div>
           <button class="button button-primary" id="export-button" type="button" disabled>
             <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
@@ -238,17 +240,17 @@
         </div>
         <div class="steps-grid">
           <article class="step-card">
-            <span class="step-number">۱</span>
+            <span class="step-number">1</span>
             <h3>لینک را وارد کنید</h3>
             <p>صفحهٔ عمومی پژوهشگر در سیویلیکا کافی است؛ حساب کاربری لازم نیست.</p>
           </article>
           <article class="step-card">
-            <span class="step-number">۲</span>
+            <span class="step-number">2</span>
             <h3>فهرست را بررسی کنید</h3>
             <p>عنوان، نوع، سال و محل انتشار را ببینید و فقط موارد دلخواه را انتخاب کنید.</p>
           </article>
           <article class="step-card">
-            <span class="step-number">۳</span>
+            <span class="step-number">3</span>
             <h3>فایل Word را دریافت کنید</h3>
             <p>خروجی فارسی و راست‌چین با سبک ارجاع انتخابی برای ویرایش آماده می‌شود.</p>
           </article>
@@ -259,11 +261,12 @@
     <footer class="site-footer">
       <div class="shell footer-inner">
         <span>استخراج‌گر مقالات سیویلیکا</span>
-        <span>نسخهٔ محلی · بدون کلید API</span>
+        <span>طراحی‌شده توسط <a href="https://github.com/Soheil-Aghayani/CivilicaPulse.git" target="_blank" rel="noreferrer">سهیل آقایانی</a></span>
       </div>
     </footer>
 
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    <script src="/assets/vendor/jdenticon.min.js" defer></script>
     <script src="/app.js" defer></script>
   </body>
 </html>

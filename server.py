@@ -24,7 +24,11 @@ MAX_ARTICLES = 1000
 USER_AGENT = "CivilicaPaperExtractor/0.1 (local research utility)"
 PERSIAN_FONT = "B Nazanin"
 ENGLISH_FONT = "Times New Roman"
-PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
+WORD_PERSIAN_SIZE = 14
+WORD_ENGLISH_SIZE = 13
+_WESTERN_DIGITS = "0123456789"
+_PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
+_ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩"
 _URL_PATTERN = re.compile(r"https?://[^\s]+", re.IGNORECASE)
 _PERSIAN_CHAR_PATTERN = re.compile(r"[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]")
 _LATIN_CHAR_PATTERN = re.compile(r"[A-Za-z]")
@@ -129,6 +133,17 @@ def sanitize_articles(value: object) -> list[dict[str, str]]:
     return cleaned
 
 
+def boolean_value(value: object, default: bool = True) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if not normalized:
+        return default
+    return normalized not in {"0", "false", "no", "off"}
+
+
 @app.get("/")
 def index():
     return send_from_directory(WEB_DIR, "index.html")
@@ -189,12 +204,11 @@ def add_bidi(paragraph) -> None:
         paragraph_format.append(OxmlElement("w:bidi"))
 
 
-def persianize_digits(value: object) -> str:
-    text = str(value or "")
-    arabic_digits = "٠١٢٣٤٥٦٧٨٩"
+def westernize_digits(value: object) -> str:
+    text = str(value if value is not None else "")
     translation = str.maketrans(
-        "0123456789" + arabic_digits,
-        PERSIAN_DIGITS + PERSIAN_DIGITS,
+        _PERSIAN_DIGITS + _ARABIC_DIGITS,
+        _WESTERN_DIGITS + _WESTERN_DIGITS,
     )
     return text.translate(translation)
 
@@ -219,7 +233,7 @@ def _script_chunks(value: str):
             current_script = "fa"
             continue
 
-        if _PERSIAN_CHAR_PATTERN.search(character) or character in PERSIAN_DIGITS:
+        if _PERSIAN_CHAR_PATTERN.search(character) or character in (_PERSIAN_DIGITS + _ARABIC_DIGITS):
             detected_script = "fa"
         elif _LATIN_CHAR_PATTERN.search(character):
             detected_script = "en"
@@ -239,19 +253,19 @@ def _script_chunks(value: str):
 
 
 def word_text_chunks(value: object):
-    text = str(value or "")
+    text = str(value if value is not None else "")
     cursor = 0
     for match in _URL_PATTERN.finditer(text):
         before = text[cursor:match.start()]
         if before:
-            for chunk, script in _script_chunks(persianize_digits(before)):
+            for chunk, script in _script_chunks(westernize_digits(before)):
                 yield chunk, script, False
         yield match.group(0), "en", True
         cursor = match.end()
 
     remainder = text[cursor:]
     if remainder:
-        for chunk, script in _script_chunks(persianize_digits(remainder)):
+        for chunk, script in _script_chunks(westernize_digits(remainder)):
             yield chunk, script, False
 
 
@@ -289,7 +303,12 @@ def set_run_font(
         rpr.remove(rtl_tag)
 
 
-def add_word_text(paragraph, value: object, size: float = 12, bold: bool = False) -> None:
+def add_word_text(
+    paragraph,
+    value: object,
+    size: float = WORD_PERSIAN_SIZE,
+    bold: bool = False,
+) -> None:
     for chunk, script, is_url in word_text_chunks(value):
         if chunk == "\n":
             if paragraph.runs:
@@ -303,7 +322,7 @@ def add_word_text(paragraph, value: object, size: float = 12, bold: bool = False
         else:
             set_run_font(
                 run,
-                size=max(size - 1, 1),
+                size=WORD_ENGLISH_SIZE if size == WORD_PERSIAN_SIZE else max(size - 1, 1),
                 bold=bold,
                 font_name=ENGLISH_FONT,
                 rtl=False,
@@ -335,7 +354,7 @@ def build_docx(payload: dict[str, object]) -> io.BytesIO:
 
     for font_slot in ("ascii", "hAnsi", "eastAsia", "cs"):
         normal_rfonts.set(qn(f"w:{font_slot}"), PERSIAN_FONT)
-    normal.font.size = Pt(10.5)
+    normal.font.size = Pt(WORD_PERSIAN_SIZE)
 
     profile = payload.get("profile") or {}
     profile_name = str(profile.get("name") or "پژوهشگر سیویلیکا")
@@ -343,29 +362,33 @@ def build_docx(payload: dict[str, object]) -> io.BytesIO:
     articles = list(payload.get("articles") or [])[:MAX_ARTICLES]
     selected_style = normalize_style(payload.get("style"))
     selected_style_label = style_label(selected_style)
+    include_links = boolean_value(payload.get("include_links"), default=True)
     citations = [
-        format_citation(article, index, selected_style, profile_name)
+        format_citation(article, index, selected_style, profile_name, include_links)
         for index, article in enumerate(articles, start=1)
     ]
 
     title = document.add_paragraph()
-    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    title.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     add_bidi(title)
-    add_word_text(title, "فهرست منابع سیویلیکا", size=18, bold=True)
+    add_word_text(title, "فهرست منابع سیویلیکا", size=WORD_PERSIAN_SIZE, bold=True)
 
     subtitle = document.add_paragraph()
-    subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    subtitle.alignment = WD_ALIGN_PARAGRAPH.RIGHT
     add_bidi(subtitle)
-    add_word_text(subtitle, profile_name, size=13, bold=True)
+    add_word_text(subtitle, profile_name, size=WORD_PERSIAN_SIZE, bold=True)
 
     info = document.add_paragraph()
     add_bidi(info)
-    add_word_text(info, "تعداد مقالات انتخاب‌شده: ", size=9.5, bold=True)
-    add_word_text(info, len(articles), size=9.5)
-    add_word_text(info, "  |  سبک ارجاع: ", size=9.5, bold=True)
-    add_word_text(info, selected_style_label, size=9.5)
-    add_word_text(info, "  |  منبع: ", size=9.5, bold=True)
-    add_word_text(info, source_url, size=9.5)
+    add_word_text(info, "تعداد مقالات انتخاب‌شده: ", size=WORD_PERSIAN_SIZE, bold=True)
+    add_word_text(info, len(articles), size=WORD_PERSIAN_SIZE)
+    add_word_text(info, "  |  سبک ارجاع: ", size=WORD_PERSIAN_SIZE, bold=True)
+    add_word_text(info, selected_style_label, size=WORD_PERSIAN_SIZE)
+    if include_links:
+        add_word_text(info, "  |  منبع: ", size=WORD_PERSIAN_SIZE, bold=True)
+        add_word_text(info, source_url, size=WORD_PERSIAN_SIZE)
+    else:
+        add_word_text(info, "  |  منبع: صفحهٔ پژوهشگر سیویلیکا", size=WORD_PERSIAN_SIZE)
     info.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
     note = document.add_paragraph()
@@ -375,7 +398,7 @@ def build_docx(payload: dict[str, object]) -> io.BytesIO:
         "این فایل بر اساس اطلاعات نمایه‌شده در صفحهٔ پژوهشگر سیویلیکا ساخته شده است. "
         "اگر نام نویسندگان در فهرست عمومی موجود نباشد، نام پژوهشگر پروفایل به‌عنوان "
         "نویسندهٔ جایگزین استفاده می‌شود؛ برای استناد نهایی آن را بررسی کنید.",
-        size=9.5,
+        size=WORD_PERSIAN_SIZE,
     )
     note.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
@@ -386,7 +409,7 @@ def build_docx(payload: dict[str, object]) -> io.BytesIO:
         citation_paragraph.paragraph_format.right_indent = Inches(0.35)
         citation_paragraph.paragraph_format.first_line_indent = Inches(-0.35)
         citation_paragraph.paragraph_format.space_after = Pt(7)
-        add_word_text(citation_paragraph, citation, size=10)
+        add_word_text(citation_paragraph, citation, size=WORD_PERSIAN_SIZE)
 
     output = io.BytesIO()
     document.core_properties.title = f"منابع سیویلیکا - {profile_name}"
@@ -396,7 +419,11 @@ def build_docx(payload: dict[str, object]) -> io.BytesIO:
     return output
 
 
-def html_word_markup(value: object, size: float = 12, bold: bool = False) -> str:
+def html_word_markup(
+    value: object,
+    size: float = WORD_PERSIAN_SIZE,
+    bold: bool = False,
+) -> str:
     from html import escape
 
     markup: list[str] = []
@@ -405,7 +432,13 @@ def html_word_markup(value: object, size: float = 12, bold: bool = False) -> str
             markup.append("<br>")
             continue
         font_name = PERSIAN_FONT if script == "fa" else ENGLISH_FONT
-        font_size = size if script == "fa" else max(size - 1, 1)
+        font_size = (
+            size
+            if script == "fa"
+            else WORD_ENGLISH_SIZE
+            if size == WORD_PERSIAN_SIZE
+            else max(size - 1, 1)
+        )
         direction = "rtl" if script == "fa" and not is_url else "ltr"
         weight = "font-weight:700;" if bold else ""
         markup.append(
@@ -424,43 +457,49 @@ def build_word_html(payload: dict[str, object]) -> io.BytesIO:
     articles = list(payload.get("articles") or [])[:MAX_ARTICLES]
     selected_style = normalize_style(payload.get("style"))
     selected_style_label = style_label(selected_style)
+    include_links = boolean_value(payload.get("include_links"), default=True)
     citations = [
-        format_citation(article, index, selected_style, profile_name)
+        format_citation(article, index, selected_style, profile_name, include_links)
         for index, article in enumerate(articles, start=1)
     ]
     citation_markup = "".join(
         '<p class="citation" dir="rtl">'
-        + html_word_markup(citation, size=10)
+        + html_word_markup(citation, size=WORD_PERSIAN_SIZE)
         + "</p>"
         for citation in citations
     )
-    title_markup = html_word_markup("فهرست منابع سیویلیکا", size=18, bold=True)
-    profile_markup = html_word_markup(profile_name, size=13, bold=True)
+    title_markup = html_word_markup(
+        "فهرست منابع سیویلیکا", size=WORD_PERSIAN_SIZE, bold=True
+    )
+    profile_markup = html_word_markup(profile_name, size=WORD_PERSIAN_SIZE, bold=True)
     meta_markup = (
-        html_word_markup("سبک ارجاع: ", size=9.5, bold=True)
-        + html_word_markup(selected_style_label, size=9.5)
-        + html_word_markup(" | تعداد: ", size=9.5, bold=True)
-        + html_word_markup(len(articles), size=9.5)
-        + html_word_markup(" | منبع: ", size=9.5, bold=True)
-        + html_word_markup(source_url, size=9.5)
+        html_word_markup("سبک ارجاع: ", size=WORD_PERSIAN_SIZE, bold=True)
+        + html_word_markup(selected_style_label, size=WORD_PERSIAN_SIZE)
+        + html_word_markup(" | تعداد: ", size=WORD_PERSIAN_SIZE, bold=True)
+        + html_word_markup(len(articles), size=WORD_PERSIAN_SIZE)
+        + html_word_markup(" | منبع: ", size=WORD_PERSIAN_SIZE, bold=True)
+        + (
+            html_word_markup(source_url, size=WORD_PERSIAN_SIZE)
+            if include_links
+            else html_word_markup("صفحهٔ پژوهشگر سیویلیکا", size=WORD_PERSIAN_SIZE)
+        )
     )
     note_markup = html_word_markup(
         "این فایل بر اساس اطلاعات نمایه‌شده در صفحهٔ پژوهشگر سیویلیکا ساخته شده است. "
         "اگر نام نویسندگان در فهرست عمومی موجود نباشد، نام پژوهشگر پروفایل به‌عنوان "
         "نویسندهٔ جایگزین استفاده می‌شود؛ برای استناد نهایی آن را بررسی کنید.",
-        size=9.5,
+        size=WORD_PERSIAN_SIZE,
     )
     html = f"""<!doctype html>
 <html lang="fa" dir="rtl">
-<head>
 <meta charset="utf-8">
 <title>منابع سیویلیکا - {escape(profile_name)}</title>
 <style>
   @page {{ margin: 2cm; }}
-  body {{ font-family: "B Nazanin", Tahoma, Arial, sans-serif; direction: rtl; text-align: right; font-size: 11pt; line-height: 1.7; }}
+  body {{ font-family: "B Nazanin", Tahoma, Arial, sans-serif; direction: rtl; text-align: right; font-size: 14pt; line-height: 1.7; }}
   h1 {{ margin-bottom: 4pt; direction: rtl; }}
   p {{ direction: rtl; text-align: right; }}
-  .meta {{ color: #475569; font-size: 9pt; }}
+  .meta {{ color: #475569; font-size: 14pt; }}
   .citation {{ margin: 0 0 10pt 0; padding-right: 0.35in; text-indent: -0.35in; }}
 </style>
 </head>
@@ -496,6 +535,7 @@ def export_word():
             },
             "articles": sanitize_articles(articles),
             "style": normalize_style(body.get("style")),
+            "include_links": boolean_value(body.get("include_links"), default=True),
         }
     except ValueError as error:
         return json_error(str(error), 400)
