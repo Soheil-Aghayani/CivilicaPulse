@@ -64,10 +64,9 @@ The repository is modularly divided into a static front-end layer and a Python-p
 ```yaml
 📦 CivilicaPulse
  ┣ 📂 web/                  # Static web application (GitHub Pages deploy target)
- ┃ ┣ 📂 assets/            # Brand marks, IRANYekanX fonts, and SVG icons
+ ┃ ┣ 📂 assets/            # Brand marks, site/browser-tab icon, IRANYekanX fonts, and SVG icons
  ┃ ┣ 📜 app.js             # Client logic, article filtering, selection, and API bridge
  ┃ ┣ 📜 config.js          # API endpoint config (localhost vs Cloudflare Worker)
- ┃ ┣ 📜 favicon.svg        # Modern SVG favicon
  ┃ ┣ 📜 index.html         # Accessible RTL semantic markup
  ┃ ┗ 📜 styles.css         # Institutional theme styles with IRANYekanX webfonts
  ┣ 📂 tests/                # Automated regression test suite
