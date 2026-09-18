@@ -30,7 +30,8 @@
 
   var apiBaseUrl = String(window.CIVILICA_API_BASE_URL || "").replace(/\/+$/, "");
   var profileFallbackProxy = "https://api.cors.lol/?url=";
-  var backendRequestTimeout = 15000;
+  // Render may need a few seconds to wake up on the first request.
+  var backendRequestTimeout = 45000;
   var fallbackRequestTimeout = 30000;
 
   function apiUrl(path) {
