@@ -78,7 +78,7 @@
             <p class="section-kicker">مرحلهٔ اول</p>
             <h2 id="import-title">آدرس صفحهٔ پژوهشگر</h2>
           </div>
-          <span class="step-number">1</span>
+          <span class="step-number">۱</span>
         </div>
 
         <form id="profile-form" novalidate>
@@ -148,9 +148,13 @@
               <h2>مقاله‌ها را انتخاب کنید</h2>
             </div>
             <div class="toolbar-actions">
+              <button class="button button-primary" id="select-all-button" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>
+                انتخاب همهٔ مقاله‌ها
+              </button>
               <button class="button button-quiet" id="select-visible-button" type="button">
                 <svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>
-                انتخاب همه
+                انتخاب این صفحه
               </button>
             </div>
           </div>
@@ -171,8 +175,8 @@
             <label class="page-size-control" for="page-size">
               <span>مقاله در هر صفحه</span>
               <select id="page-size" dir="ltr" aria-label="تعداد مقاله در هر صفحه">
-                <option value="5">5</option>
-                <option value="10" selected>10</option>
+                <option value="5">۵</option>
+                <option value="10" selected>۱۰</option>
               </select>
             </label>
           </div>
@@ -189,12 +193,12 @@
             <div class="style-control">
               <span class="field-label">سبک ارجاع</span>
               <div class="citation-style-pills" role="group" aria-label="انتخاب سبک ارجاع">
-                <button class="citation-style-pill is-active" type="button" data-style="apa7" dir="ltr">APA 7th</button>
+                <button class="citation-style-pill is-active" type="button" data-style="apa7" dir="ltr">APA ۷th</button>
                 <button class="citation-style-pill" type="button" data-style="vancouver" dir="ltr">Vancouver</button>
                 <button class="citation-style-pill" type="button" data-style="ieee" dir="ltr">IEEE</button>
                 <button class="citation-style-pill" type="button" data-style="harvard" dir="ltr">Harvard</button>
                 <button class="citation-style-pill" type="button" data-style="chicago" dir="ltr">Chicago</button>
-                <button class="citation-style-pill" type="button" data-style="mla" dir="ltr">MLA 9th</button>
+                <button class="citation-style-pill" type="button" data-style="mla" dir="ltr">MLA ۹th</button>
                 <button class="citation-style-pill" type="button" data-style="bibtex" dir="ltr">BibTeX</button>
               </div>
             </div>
@@ -235,9 +239,10 @@
             <p class="section-kicker">مرحلهٔ چهارم</p>
             <h2><span id="selected-count">0</span> مقاله برای خروجی آماده است</h2>
           </div>
-          <button class="button button-primary" id="export-button" type="button" disabled>
+          <button class="button button-primary icon-button icon-only-button export-icon-button" id="export-button" type="button"
+                  aria-label="دریافت فایل Word" title="دریافت فایل Word" disabled>
             <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
-            دریافت فایل Word
+            <span class="sr-only">دریافت فایل Word</span>
           </button>
         </div>
       </section>

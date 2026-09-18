@@ -20,9 +20,9 @@ ARTICLE = {
 class CitationFormatTests(unittest.TestCase):
     def test_style_aliases_and_formats(self):
         self.assertEqual(normalize_style("APA 7th"), "apa7")
-        self.assertIn("(1402)", format_citation(ARTICLE, 1, "apa7", "پژوهشگر نمونه"))
-        self.assertIn("(1402)", format_citation({**ARTICLE, "year": "۱۴۰۲"}, 1, "apa7", "پژوهشگر نمونه"))
-        self.assertTrue(format_citation(ARTICLE, 2, "vancouver", "پژوهشگر نمونه").startswith("2."))
+        self.assertIn("(۱۴۰۲)", format_citation(ARTICLE, 1, "apa7", "پژوهشگر نمونه"))
+        self.assertIn("(۱۴۰۲)", format_citation({**ARTICLE, "year": "۱۴۰۲"}, 1, "apa7", "پژوهشگر نمونه"))
+        self.assertTrue(format_citation(ARTICLE, 2, "vancouver", "پژوهشگر نمونه").startswith("۲."))
         self.assertIn("@misc", format_citation(ARTICLE, 1, "bibtex", "پژوهشگر نمونه"))
 
 
@@ -51,16 +51,17 @@ class WordExportTests(unittest.TestCase):
         )
         document = Document(BytesIO(response.data))
         citation = document.paragraphs[-1]
-        self.assertIn("1402", citation.text)
+        self.assertIn("۱۴۰۲", citation.text)
+        self.assertNotIn("1402", citation.text)
         self.assertIn("https://civilica.com/doc/12/", citation.text)
         self.assertIn("w:bidi", citation._p.xml)
         self.assertIn("B Nazanin", {run.font.name for run in citation.runs})
         self.assertIn("Times New Roman", {run.font.name for run in citation.runs})
-        self.assertIn(14.0, {run.font.size.pt for run in citation.runs if run.font.size})
-        self.assertIn(13.0, {run.font.size.pt for run in citation.runs if run.font.size})
-        self.assertIn('w:val="right"', document.paragraphs[0]._p.xml)
+        self.assertIn(12.0, {run.font.size.pt for run in citation.runs if run.font.size})
+        self.assertIn(11.0, {run.font.size.pt for run in citation.runs if run.font.size})
+        self.assertTrue(all('w:val="right"' in paragraph._p.xml for paragraph in document.paragraphs))
 
-    def test_persian_digits_become_english_font_runs(self):
+    def test_persian_digits_keep_persian_font_runs_and_urls_stay_english(self):
         article = {
             **ARTICLE,
             "title": "عنوان پژوهش ۱۴۰۲ English",
@@ -74,12 +75,16 @@ class WordExportTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         document = Document(BytesIO(response.data))
         citation = document.paragraphs[-1]
-        self.assertIn("1402", citation.text)
-        self.assertNotIn("۱۴۰۲", citation.text)
-        numeric_runs = [run for run in citation.runs if "1402" in run.text]
+        self.assertIn("۱۴۰۲", citation.text)
+        self.assertNotIn("1402", citation.text)
+        numeric_runs = [run for run in citation.runs if "۱۴۰۲" in run.text]
         self.assertTrue(numeric_runs)
-        self.assertTrue(all(run.font.name == "Times New Roman" for run in numeric_runs))
-        self.assertTrue(all(run.font.size.pt == 13.0 for run in numeric_runs))
+        self.assertTrue(all(run.font.name == "B Nazanin" for run in numeric_runs))
+        self.assertTrue(all(run.font.size.pt == 12.0 for run in numeric_runs))
+        url_runs = [run for run in citation.runs if "https://" in run.text]
+        self.assertTrue(url_runs)
+        self.assertTrue(all(run.font.name == "Times New Roman" for run in url_runs))
+        self.assertTrue(all(run.font.size.pt == 11.0 for run in url_runs))
 
     def test_docx_can_omit_civilica_links(self):
         response = self.client.post(
@@ -106,7 +111,9 @@ class WordExportTests(unittest.TestCase):
         self.assertIn(b"text-align: right", response.data)
         self.assertIn("B Nazanin".encode(), response.data)
         self.assertIn("Times New Roman".encode(), response.data)
-        self.assertIn("1402".encode(), response.data)
+        self.assertIn("۱۴۰۲".encode(), response.data)
+        self.assertIn(b"font-size: 12pt", response.data)
+        self.assertIn(b"font-size:11pt", response.data)
         self.assertIn(b"/doc/12/", response.data)
 
 

@@ -38,6 +38,7 @@
     emptyResults: document.getElementById("empty-results"),
     articleFilter: document.getElementById("article-filter"),
     pageSize: document.getElementById("page-size"),
+    selectAll: document.getElementById("select-all-button"),
     selectVisible: document.getElementById("select-visible-button"),
     selectedCount: document.getElementById("selected-count"),
     exportButton: document.getElementById("export-button"),
@@ -72,8 +73,10 @@
 
   function toPersianDigits(value) {
     var persianDigits = "۰۱۲۳۴۵۶۷۸۹";
-    return String(value).replace(/[0-9]/g, function (digit) {
-      return persianDigits[digit];
+    var allDigits = "0123456789٠١٢٣٤٥٦٧٨٩";
+    return String(value).replace(/[0-9٠-٩]/g, function (digit) {
+      var index = allDigits.indexOf(digit);
+      return index >= 0 ? persianDigits[index % 10] : digit;
     });
   }
 
@@ -98,13 +101,29 @@
     if (loading) {
       button.dataset.restoreHtml = button.innerHTML;
       button.disabled = true;
-      button.innerHTML = icon("refresh") + "<span>" + loadingText + "</span>";
+      button.setAttribute("aria-busy", "true");
+      if (button.classList.contains("icon-only-button")) {
+        button.dataset.restoreAriaLabel = button.getAttribute("aria-label") || "";
+        button.setAttribute("aria-label", loadingText);
+        button.innerHTML = icon("refresh");
+      } else {
+        button.innerHTML = icon("refresh") + "<span>" + loadingText + "</span>";
+      }
     } else {
       button.disabled = false;
       if (button.dataset.restoreHtml) {
         button.innerHTML = button.dataset.restoreHtml;
         delete button.dataset.restoreHtml;
       }
+      if (button.dataset.restoreAriaLabel !== undefined) {
+        if (button.dataset.restoreAriaLabel) {
+          button.setAttribute("aria-label", button.dataset.restoreAriaLabel);
+        } else {
+          button.removeAttribute("aria-label");
+        }
+        delete button.dataset.restoreAriaLabel;
+      }
+      button.removeAttribute("aria-busy");
     }
   }
 
@@ -152,16 +171,16 @@
     elements.wordFileType.value = "docx";
     elements.includeLinks.checked = true;
 
-    elements.resultsTitle.textContent = state.profile.name || "پژوهشگر سیویلیکا";
+    elements.resultsTitle.textContent = toPersianDigits(state.profile.name || "پژوهشگر سیویلیکا");
     renderProfileAvatar();
     elements.profileSource.href = state.profile.url || "#";
-    elements.totalCount.textContent = toEnglishDigits(state.articles.length);
-    elements.conferenceCount.textContent = toEnglishDigits(
+    elements.totalCount.textContent = toPersianDigits(state.articles.length);
+    elements.conferenceCount.textContent = toPersianDigits(
       state.articles.filter(function (article) {
         return article.type === "مقاله کنفرانسی";
       }).length
     );
-    elements.journalCount.textContent = toEnglishDigits(
+    elements.journalCount.textContent = toPersianDigits(
       state.articles.filter(function (article) {
         return article.type === "مقاله ژورنالی";
       }).length
@@ -206,9 +225,9 @@
     if (!hasPagination) {
       return;
     }
-    elements.paginationStatus.innerHTML = "صفحه <bdi class=\"numeric\">" + toEnglishDigits(state.page) +
-      "</bdi> از <bdi class=\"numeric\">" + toEnglishDigits(pages) +
-      "</bdi> · <bdi class=\"numeric\">" + toEnglishDigits(visible.length) + "</bdi> مقاله";
+    elements.paginationStatus.innerHTML = "صفحه <bdi class=\"persian-numeric\">" + toPersianDigits(state.page) +
+      "</bdi> از <bdi class=\"persian-numeric\">" + toPersianDigits(pages) +
+      "</bdi> · <bdi class=\"persian-numeric\">" + toPersianDigits(visible.length) + "</bdi> مقاله";
     elements.previousPage.disabled = state.page <= 1;
     elements.nextPage.disabled = state.page >= pages;
   }
@@ -219,10 +238,10 @@
     elements.resultsList.innerHTML = pageArticles.map(function (article) {
       var selected = state.selected.has(article.id);
       var articleId = escapeHtml(article.id);
-      var title = escapeHtml(toEnglishDigits(article.title || "بدون عنوان"));
-      var venue = escapeHtml(toEnglishDigits(article.venue || "محل انتشار نامشخص"));
+      var title = escapeHtml(toPersianDigits(article.title || "بدون عنوان"));
+      var venue = escapeHtml(toPersianDigits(article.venue || "محل انتشار نامشخص"));
       var year = escapeHtml(toPersianDigits(article.year || "—"));
-      var type = escapeHtml(toEnglishDigits(article.type || "مقاله"));
+      var type = escapeHtml(toPersianDigits(article.type || "مقاله"));
       var url = escapeHtml(article.url || "#");
       var number = state.articles.indexOf(article) + 1;
       return (
@@ -252,14 +271,20 @@
 
   function updateSelectionUi(visible) {
     var count = state.selected.size;
-    elements.selectedCount.textContent = toEnglishDigits(count);
+    elements.selectedCount.textContent = toPersianDigits(count);
     elements.exportButton.disabled = count === 0;
     var allPageSelected = visible.length > 0 && visible.every(function (article) {
       return state.selected.has(article.id);
     });
+    var allArticlesSelected = state.articles.length > 0 && state.articles.every(function (article) {
+      return state.selected.has(article.id);
+    });
+    elements.selectAll.innerHTML = allArticlesSelected
+      ? icon("close") + "لغو انتخاب همهٔ مقاله‌ها"
+      : icon("check") + "انتخاب همهٔ مقاله‌ها";
     elements.selectVisible.innerHTML = allPageSelected
       ? icon("close") + "لغو انتخاب صفحه"
-      : icon("check") + "انتخاب صفحه";
+      : icon("check") + "انتخاب این صفحه";
   }
 
   function toggleVisibleSelection() {
@@ -274,6 +299,20 @@
         state.selected.add(article.id);
       }
     });
+    renderResults();
+  }
+
+  function toggleAllSelection() {
+    var allSelected = state.articles.length > 0 && state.articles.every(function (article) {
+      return state.selected.has(article.id);
+    });
+    if (allSelected) {
+      state.selected.clear();
+    } else {
+      state.articles.forEach(function (article) {
+        state.selected.add(article.id);
+      });
+    }
     renderResults();
   }
 
@@ -407,6 +446,7 @@
     });
   });
 
+  elements.selectAll.addEventListener("click", toggleAllSelection);
   elements.selectVisible.addEventListener("click", toggleVisibleSelection);
   elements.previousPage.addEventListener("click", function () {
     if (state.page <= 1) {

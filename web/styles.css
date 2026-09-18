@@ -59,11 +59,15 @@ body {
   overflow-x: hidden;
 }
 
-.numeric,
-.stat strong,
-.step-number {
+.numeric {
   font-family: "Segoe UI", Arial, sans-serif;
   font-variant-numeric: lining-nums tabular-nums;
+}
+
+.stat strong,
+.step-number {
+  font-family: "IRANYekanXFaNum", Tahoma, sans-serif;
+  font-variant-numeric: normal;
 }
 
 .skip-link {
@@ -338,6 +342,11 @@ a {
   width: 44px;
   min-width: 44px;
   padding-inline: 10px;
+}
+
+.export-icon-button {
+  width: 52px;
+  min-width: 52px;
 }
 
 .asset-icon {
@@ -707,9 +716,9 @@ input[type="checkbox"]:focus-visible {
   border-radius: var(--radius-sm);
   color: var(--foreground);
   background: #fff;
-  font-family: "Segoe UI", Arial, sans-serif;
+  font-family: "IRANYekanXFaNum", Tahoma, sans-serif;
   font-size: 13px;
-  font-variant-numeric: lining-nums tabular-nums;
+  font-variant-numeric: normal;
   font-weight: 700;
   text-align: center;
 }
@@ -1257,6 +1266,12 @@ input[type="checkbox"]:focus-visible {
 
   .export-bar .button {
     width: 100%;
+  }
+
+  .export-bar .export-icon-button {
+    width: 52px;
+    min-width: 52px;
+    align-self: flex-start;
   }
 
   .footer-inner {

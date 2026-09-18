@@ -24,8 +24,8 @@ MAX_ARTICLES = 1000
 USER_AGENT = "CivilicaPaperExtractor/0.1 (local research utility)"
 PERSIAN_FONT = "B Nazanin"
 ENGLISH_FONT = "Times New Roman"
-WORD_PERSIAN_SIZE = 14
-WORD_ENGLISH_SIZE = 13
+WORD_PERSIAN_SIZE = 12
+WORD_ENGLISH_SIZE = 11
 _WESTERN_DIGITS = "0123456789"
 _PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
 _ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩"
@@ -204,11 +204,11 @@ def add_bidi(paragraph) -> None:
         paragraph_format.append(OxmlElement("w:bidi"))
 
 
-def westernize_digits(value: object) -> str:
+def persianize_digits(value: object) -> str:
     text = str(value if value is not None else "")
     translation = str.maketrans(
-        _PERSIAN_DIGITS + _ARABIC_DIGITS,
-        _WESTERN_DIGITS + _WESTERN_DIGITS,
+        _WESTERN_DIGITS + _ARABIC_DIGITS,
+        _PERSIAN_DIGITS + _PERSIAN_DIGITS,
     )
     return text.translate(translation)
 
@@ -260,14 +260,14 @@ def word_text_chunks(value: object):
     for match in _URL_PATTERN.finditer(text):
         before = text[cursor:match.start()]
         if before:
-            for chunk, script in _script_chunks(westernize_digits(before)):
+            for chunk, script in _script_chunks(persianize_digits(before)):
                 yield chunk, script, False
         yield match.group(0), "en", True
         cursor = match.end()
 
     remainder = text[cursor:]
     if remainder:
-        for chunk, script in _script_chunks(westernize_digits(remainder)):
+        for chunk, script in _script_chunks(persianize_digits(remainder)):
             yield chunk, script, False
 
 
@@ -357,6 +357,7 @@ def build_docx(payload: dict[str, object]) -> io.BytesIO:
     for font_slot in ("ascii", "hAnsi", "eastAsia", "cs"):
         normal_rfonts.set(qn(f"w:{font_slot}"), PERSIAN_FONT)
     normal.font.size = Pt(WORD_PERSIAN_SIZE)
+    normal.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
     profile = payload.get("profile") or {}
     profile_name = str(profile.get("name") or "پژوهشگر سیویلیکا")
@@ -502,10 +503,10 @@ def build_word_html(payload: dict[str, object]) -> io.BytesIO:
 <style>
   @page {{ margin: 2cm; }}
   html, body {{ direction: rtl; }}
-  body {{ font-family: "B Nazanin", Tahoma, Arial, sans-serif; mso-bidi-font-family: "B Nazanin"; direction: rtl; text-align: right; font-size: 14pt; line-height: 1.7; }}
-  h1 {{ margin: 0 0 8pt 0; direction: rtl; text-align: right; font-family: "B Nazanin"; font-size: 14pt; }}
-  p {{ direction: rtl; text-align: right; font-family: "B Nazanin"; font-size: 14pt; }}
-  .meta {{ color: #475569; font-size: 14pt; }}
+  body {{ font-family: "B Nazanin", Tahoma, Arial, sans-serif; mso-bidi-font-family: "B Nazanin"; direction: rtl; text-align: right; font-size: 12pt; line-height: 1.7; }}
+  h1 {{ margin: 0 0 8pt 0; direction: rtl; text-align: right; font-family: "B Nazanin"; font-size: 12pt; }}
+  p {{ direction: rtl; text-align: right; font-family: "B Nazanin"; font-size: 12pt; }}
+  .meta {{ color: #475569; font-size: 12pt; }}
   .citation {{ margin: 0 0 10pt 0; padding: 0; text-indent: 0; direction: rtl; text-align: right !important; }}
 </style>
 </head>

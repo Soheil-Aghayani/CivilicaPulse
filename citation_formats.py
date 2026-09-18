@@ -15,9 +15,9 @@ STYLE_LABELS = {
     "bibtex": "BibTeX",
 }
 
-_DIGIT_TRANSLATION = str.maketrans(
-    "۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩",
-    "01234567890123456789",
+_PERSIAN_DIGIT_TRANSLATION = str.maketrans(
+    "0123456789٠١٢٣٤٥٦٧٨٩",
+    "۰۱۲۳۴۵۶۷۸۹۰۱۲۳۴۵۶۷۸۹",
 )
 
 
@@ -42,8 +42,8 @@ def clean_text(value: object, fallback: str = "") -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip() or fallback
 
 
-def westernize_digits(value: object) -> str:
-    return str(value or "").translate(_DIGIT_TRANSLATION)
+def persianize_digits(value: object) -> str:
+    return str(value or "").translate(_PERSIAN_DIGIT_TRANSLATION)
 
 
 def profile_author(value: object) -> str:
@@ -54,24 +54,24 @@ def profile_author(value: object) -> str:
         author,
         flags=re.IGNORECASE,
     )
-    return author or "نویسندهٔ پروفایل"
+    return persianize_digits(author or "نویسندهٔ پروفایل")
 
 
 def citation_author(article: dict[str, object], fallback_author: str) -> str:
-    return clean_text(article.get("authors"), profile_author(fallback_author))
+    return persianize_digits(clean_text(article.get("authors"), profile_author(fallback_author)))
 
 
 def citation_year(article: dict[str, object]) -> str:
     value = clean_text(article.get("year"))
-    return westernize_digits(value) if value else "n.d."
+    return persianize_digits(value) if value else "n.d."
 
 
 def citation_title(article: dict[str, object]) -> str:
-    return clean_text(article.get("title"), "بدون عنوان").rstrip(".")
+    return persianize_digits(clean_text(article.get("title"), "بدون عنوان").rstrip("."))
 
 
 def citation_venue(article: dict[str, object]) -> str:
-    return clean_text(article.get("venue")).rstrip(".")
+    return persianize_digits(clean_text(article.get("venue")).rstrip("."))
 
 
 def citation_url(article: dict[str, object]) -> str:
@@ -92,6 +92,7 @@ def format_citation(
     title = citation_title(article)
     venue = citation_venue(article)
     year = citation_year(article)
+    display_index = persianize_digits(index)
     url = citation_url(article) if include_url else ""
     venue_part = f" {venue}." if venue else ""
     url_part = f" {url}" if url else ""
@@ -100,10 +101,10 @@ def format_citation(
         return f"{authors} ({year}). {title}.{venue_part}{url_part}".strip()
 
     if selected_style == "vancouver":
-        return f"{index}. {authors}. {title}.{venue_part} {year}.{url_part}".strip()
+        return f"{display_index}. {authors}. {title}.{venue_part} {year}.{url_part}".strip()
 
     if selected_style == "ieee":
-        return f"[{index}] {authors}, “{title},”{(' ' + venue + ',') if venue else ''} {year}.{url_part}".strip()
+        return f"[{display_index}] {authors}, “{title},”{(' ' + venue + ',') if venue else ''} {year}.{url_part}".strip()
 
     if selected_style == "harvard":
         return f"{authors} ({year}) ‘{title}’.{venue_part}{url_part}".strip()
