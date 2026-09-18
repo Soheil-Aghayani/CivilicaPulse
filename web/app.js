@@ -1402,11 +1402,15 @@
       var url = document.getElementById("profile-url").value.trim();
       if (!url) return showToast("لطفاً آدرس صفحه پژوهشگر را وارد کنید.");
 
-      // Normalize civilica URL (support Persian digits in URL too)
-      var allDigits = "0123456789٠١٢٣٤٥٦٧٨٩";
-      var latinDigits = "0123456789012345678901234567890123456789";
-      url = url.replace(/[٠-٩]/g, function(d) { return String(allDigits.indexOf(d) % 10); });
-      if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+      // Normalize civilica URL (support Persian digits in URL too, e.g. /p/۱۷۶۲۲۵/)
+      url = url.replace(/[۰-۹٠-٩]/g, function(d) {
+        var persian = "۰۱۲۳۴۵۶۷۸۹";
+        var arabic  = "٠١٢٣٤٥٦٧٨٩";
+        var pi = persian.indexOf(d);
+        var ai = arabic.indexOf(d);
+        return pi >= 0 ? String(pi) : ai >= 0 ? String(ai) : d;
+      });
+      if (!/^https?:\/\//i.test(url)) url = "https://civilica.com/p/" + url.replace(/\D/g, "") + "/";
 
       var statusEl = document.getElementById("scrape-status");
       statusEl.style.display = "flex";
