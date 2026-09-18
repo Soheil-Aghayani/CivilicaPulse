@@ -7,7 +7,7 @@
 
 [![Live Experience](https://img.shields.io/badge/Live_Site-Visit_CivilicaPulse-1E3A5F?style=for-the-badge&logoColor=white)](https://soheil-aghayani.github.io/CivilicaPulse/)
 [![Architecture](https://img.shields.io/badge/Architecture-Static_UI_%7C_Flask_API-0F172A?style=for-the-badge&logoColor=white)](#)
-[![Deployment](https://img.shields.io/badge/Hosting-GitHub_Pages_%7C_Render-2563EB?style=for-the-badge&logo=github&logoColor=white)](#)
+[![Deployment](https://img.shields.io/badge/Hosting-GitHub_Pages_%7C_Cloudflare_%7C_Render-2563EB?style=for-the-badge&logo=cloudflare&logoColor=white)](#)
 [![License](https://img.shields.io/badge/License-MIT-0F172A?style=for-the-badge&logoColor=white)](#)
 
 <br/>
@@ -66,7 +66,7 @@ The repository is modularly divided into a static front-end layer and a Python-p
  ┣ 📂 web/                  # Static web application (GitHub Pages deploy target)
  ┃ ┣ 📂 assets/            # Brand marks, IRANYekanX fonts, and SVG icons
  ┃ ┣ 📜 app.js             # Client logic, article filtering, selection, and API bridge
- ┃ ┣ 📜 config.js          # API endpoint config (localhost vs Render cloud)
+ ┃ ┣ 📜 config.js          # API endpoint config (localhost vs Cloudflare Worker)
  ┃ ┣ 📜 favicon.svg        # Modern SVG favicon
  ┃ ┣ 📜 index.html         # Accessible RTL semantic markup
  ┃ ┗ 📜 styles.css         # Institutional theme styles with IRANYekanX webfonts
@@ -74,14 +74,25 @@ The repository is modularly divided into a static front-end layer and a Python-p
  ┃ ┣ 📜 test_parser.py     # DOM parsing verification
  ┃ ┗ 📜 test_citations.py  # Citation formatter and Word XML export tests
  ┣ 📂 docs/                 # Documentation assets and SVG vector hero banner
+ ┣ 📂 cloudflare/           # Cloudflare Worker bridge for the Python API
  ┣ 📜 server.py             # Flask microservice & Word document generator
  ┣ 📜 civilica_parser.py    # Robust scraper & HTML parser
  ┣ 📜 citation_formats.py   # APA, IEEE, Vancouver, Harvard, Chicago formatters
- ┣ 📜 render.yaml           # Automated Render Cloud blueprint deployment
+ ┣ 📜 render.yaml           # Render origin service deployment
  ┣ 📜 start.bat             # Instant Windows one-click local development launcher
  ┣ 📜 requirements.txt      # Python dependencies (Flask, beautifulsoup4, python-docx)
  ┗ 📜 README.md             # Platform documentation & technical manual
 ```
+
+---
+
+## Production API routing
+
+The static interface is published on GitHub Pages. Production API requests use the public Cloudflare Worker bridge below, which forwards only `/api/*` requests to the Flask origin service on Render:
+
+`https://civilicapulse-api-bridge.soheil-deutschly.workers.dev`
+
+This keeps browser traffic on a Cloudflare endpoint while preserving the existing Python parser and Word export implementation.
 
 ---
 
