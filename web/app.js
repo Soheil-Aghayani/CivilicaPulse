@@ -1,321 +1,17 @@
 /**
- * CivilicaPulse — Pure Client-Side & Live Academic Researcher Toolkit
+ * CivilicaPulse — Live Academic Researcher Toolkit
  * Features:
  * - Multi-author citation generation & custom author management
  * - Target author isolation (تفکیک پژوهشگر هدف) and bolding in Word & citations
  * - Co-author filtering & collaborator analytics
  * - Authentic Persian typography (IRANYekanX) & Solar icon consistency
- * - Client-side Word (.docx/.doc), BibTeX, CSV, JSON, Print
+ * - Backend-backed profile parsing and Word (.docx) export, plus local exports
  */
 
 (function () {
   "use strict";
 
-  // Preloaded Datasets with Comprehensive Multi-Author Details
-  var DEMO_PROFILES = {
-    samiee: {
-      profile: {
-        id: "28419",
-        name: "دکتر رودابه سامعی",
-        affil: "عضو هیئت علمی و استاد مهندسی محیط زیست، دانشگاه تهران",
-        url: "https://civilica.com/p/28419/"
-      },
-      articles: [
-        {
-          id: "401",
-          title: "ارزیابی چندمعیاره و تحلیل چرخه حیات (LCA) فرآیندهای بازیافت و تبدیل پسماند به انرژی",
-          venue: "مجله مهندسی محیط زیست",
-          year: "1402",
-          type: "مقاله ژورنالی",
-          authors: "دکتر رودابه سامعی، سهیل آقایانی، دکتر ناصر مهردادی",
-          url: "https://civilica.com/doc/401/"
-        },
-        {
-          id: "402",
-          title: "مدل‌سازی انتشار گازهای گلخانه‌ای در تصفیه‌خانه‌های فاضلاب شهری با روش سناریوسازی",
-          venue: "بیستمین همایش ملی بهداشت محیط و مدیریت پسماند",
-          year: "1402",
-          type: "مقاله کنفرانسی",
-          authors: "دکتر رودابه سامعی، مهندس علی رضایی",
-          url: "https://civilica.com/doc/402/"
-        },
-        {
-          id: "403",
-          title: "بهینه‌سازی سنتز بیودیزل از روغن‌های پسماند با استفاده از نانوکاتالیزورهای مغناطیسی سبز",
-          venue: "نشریه تخصصی انرژی‌های نو و محیط زیست",
-          year: "1401",
-          type: "مقاله ژورنالی",
-          authors: "سهیل آقایانی، دکتر رودابه سامعی",
-          url: "https://civilica.com/doc/403/"
-        },
-        {
-          id: "404",
-          title: "بررسی پایداری و اثرات تجمعی آلاینده‌های نوظهور در تالاب‌های ساحلی جنوب ایران",
-          venue: "ششمین همایش ملی محیط زیست دریا و شیلات",
-          year: "1401",
-          type: "مقاله کنفرانسی",
-          authors: "دکتر رودابه سامعی، دکتر احمدرضا کرباسی، سهیل آقایانی",
-          url: "https://civilica.com/doc/404/"
-        },
-        {
-          id: "405",
-          title: "طرح پژوهشی سنجش ردپای کربن و تدوین استراتژی‌های اقتصاد چرخشی در صنایع پتروشیمی",
-          venue: "مرکز مطالعات انرژی و محیط زیست دانشگاه تهران",
-          year: "1400",
-          type: "طرح پژوهشی",
-          authors: "دکتر رودابه سامعی، دکتر ناصر مهردادی",
-          url: "https://civilica.com/doc/405/"
-        },
-        {
-          id: "406",
-          title: "سنتز نانوکامپوزیت‌های کربنی جاذب جهت حذف ترکیبات دارویی و آنتی‌بیوتیک‌ها از پساب",
-          venue: "فصلنامه انسان و محیط زیست",
-          year: "1399",
-          type: "مقاله ژورنالی",
-          authors: "دکتر رودابه سامعی، مهندس مریم حسینی",
-          url: "https://civilica.com/doc/406/"
-        }
-      ]
-    },
-    mehrdadi: {
-      profile: {
-        id: "176225",
-        name: "پروفسور ناصر مهردادی",
-        affil: "استاد تمام گروه مهندسی محیط زیست، دانشکده محیط زیست، دانشگاه تهران",
-        url: "https://civilica.com/p/176225/"
-      },
-      articles: [
-        {
-          id: "101",
-          title: "ارزیابی شاخص‌های کیفی آب رودخانه‌ها با استفاده از شبکه‌های عصبی مصنوعی",
-          venue: "مجله مهندسی محیط زیست",
-          year: "1402",
-          type: "مقاله ژورنالی",
-          authors: "پروفسور ناصر مهردادی، دکتر احمدرضا کرباسی، مهندس پویان فراهانی",
-          url: "https://civilica.com/doc/101/"
-        },
-        {
-          id: "102",
-          title: "بررسی و مدل‌سازی انتقال آلاینده‌های فلزات سنگین در منابع آب‌های سطحی",
-          venue: "بیستمین همایش ملی محیط زیست و بهداشت محیط",
-          year: "1402",
-          type: "مقاله کنفرانسی",
-          authors: "پروفسور ناصر مهردادی، مهندس مریم حسینی",
-          url: "https://civilica.com/doc/102/"
-        },
-        {
-          id: "103",
-          title: "کاربرد فناوری بیوفیلتراسیون در تصفیه بیولوژیکی پساب‌های صنعتی پیچیده",
-          venue: "نشریه آب و فاضلاب",
-          year: "1401",
-          type: "مقاله ژورنالی",
-          authors: "پروفسور ناصر مهردادی، دکتر رودابه سامعی",
-          url: "https://civilica.com/doc/101/"
-        },
-        {
-          id: "104",
-          title: "بهینه‌سازی فرآیند لجن فعال در راکتورهای ناپیوسته متوالی (SBR)",
-          venue: "ششمین همایش ملی مدیریت پسماند و توسعه پایدار",
-          year: "1401",
-          type: "مقاله کنفرانسی",
-          authors: "پروفسور ناصر مهردادی، مهندس رضا رضایی",
-          url: "https://civilica.com/doc/104/"
-        },
-        {
-          id: "105",
-          title: "ارزیابی چرخه حیات (LCA) سامانه‌های یکپارچه مدیریت پسماند شهری در ایران",
-          venue: "فصلنامه انسان و محیط زیست",
-          year: "1400",
-          type: "مقاله ژورنالی",
-          authors: "پروفسور ناصر مهردادی، دکتر رودابه سامعی، سهیل آقایانی",
-          url: "https://civilica.com/doc/105/"
-        },
-        {
-          id: "106",
-          title: "بررسی کارایی فتوکاتالیست نانوذرات اکسید تیتانیوم در تخریب رنگزاهای نساجی",
-          venue: "هشتمین کنفرانس بین‌المللی مدیریت محیط زیست",
-          year: "1399",
-          type: "مقاله کنفرانسی",
-          authors: "پروفسور ناصر مهردادی، مهندس علی نوری",
-          url: "https://civilica.com/doc/106/"
-        },
-        {
-          id: "107",
-          title: "طرح پژوهشی مطالعه جامع و پایش برخط کیفیت هوای کلان‌شهرهای صنعتی",
-          venue: "سازمان حفاظت محیط زیست و دانشگاه تهران",
-          year: "1399",
-          type: "طرح پژوهشی",
-          authors: "پروفسور ناصر مهردادی، دکتر رودابه سامعی",
-          url: "https://civilica.com/doc/107/"
-        },
-        {
-          id: "108",
-          title: "تحلیل پایداری اکوسیستم‌های تالابی با استفاده از رویکرد دینامیک سیستم‌ها",
-          venue: "مجله علوم و تکنولوژی محیط زیست",
-          year: "1398",
-          type: "مقاله ژورنالی",
-          authors: "پروفسور ناصر مهردادی، دکتر احمدرضا کرباسی",
-          url: "https://civilica.com/doc/108/"
-        },
-        {
-          id: "109",
-          title: "شبیه‌سازی عددی نشت هیدروکربن‌های نفتی در محیط‌های متخلخل آبخوان",
-          venue: "هفتمین کنگره ملی مهندسی عمران",
-          year: "1398",
-          type: "مقاله کنفرانسی",
-          authors: "پروفسور ناصر مهردادی، مهندس کیوان صبوری",
-          url: "https://civilica.com/doc/109/"
-        },
-        {
-          id: "110",
-          title: "ارزیابی اثرات زیست‌محیطی طرح‌های توسعه صنعتی در مناطق ساحلی جنوب",
-          venue: "نشریه تخصصی اکولوژی صنعتی و پایش زیستی",
-          year: "1397",
-          type: "مقاله ژورنالی",
-          authors: "پروفسور ناصر مهردادی، دکتر احمدرضا کرباسی",
-          url: "https://civilica.com/doc/110/"
-        },
-        {
-          id: "111",
-          title: "مقایسه روش‌های اکسیداسیون پیشرفته (AOPs) در تصفیه پساب دارویی",
-          venue: "پنجمین همایش علوم و مهندسی محیط زیست",
-          year: "1397",
-          type: "مقاله کنفرانسی",
-          authors: "پروفسور ناصر مهردادی، مهندس سارا امینی",
-          url: "https://civilica.com/doc/111/"
-        },
-        {
-          id: "112",
-          title: "تولید بیوگاز از هضم بی‌هوازی پسماندهای جامد ارگانیک با روش گرمادوست",
-          venue: "مجله تحقیقات منابع طبیعی ایران",
-          year: "1396",
-          type: "مقاله ژورنالی",
-          authors: "پروفسور ناصر مهردادی، مهندس علی رضایی",
-          url: "https://civilica.com/doc/112/"
-        }
-      ]
-    },
-    karbassi: {
-      profile: {
-        id: "45210",
-        name: "دکتر احمدرضا کرباسی",
-        affil: "استاد تمام دانشکده محیط زیست، متخصص ژئوشیمی و آلودگی‌های دریایی، دانشگاه تهران",
-        url: "https://civilica.com/p/45210/"
-      },
-      articles: [
-        {
-          id: "201",
-          title: "بررسی رفتار ژئوشیمیایی و انتقال فازی فلزات سنگین در مصب رودخانه‌ها",
-          venue: "مجله محیط زیست طبیعی",
-          year: "1402",
-          type: "مقاله ژورنالی",
-          authors: "دکتر احمدرضا کرباسی، مهندس مریم ناصری",
-          url: "https://civilica.com/doc/201/"
-        },
-        {
-          id: "202",
-          title: "پایش آلودگی‌های رسوبات خلیج فارس با استفاده از شاخص زمین‌انباشتگی",
-          venue: "همایش علوم و مهندسی محیط زیست دریا",
-          year: "1401",
-          type: "مقاله کنفرانسی",
-          authors: "دکتر احمدرضا کرباسی، دکتر ناصر مهردادی",
-          url: "https://civilica.com/doc/202/"
-        },
-        {
-          id: "203",
-          title: "مدل‌سازی شوری‌زدایی و لخته‌سازی کلوئیدهای معدنی در آبراهه‌های ساحلی",
-          venue: "نشریه علوم و فنون اقیانوس‌شناسی",
-          year: "1400",
-          type: "مقاله ژورنالی",
-          authors: "دکتر احمدرضا کرباسی، مهندس علی احمدی",
-          url: "https://civilica.com/doc/203/"
-        },
-        {
-          id: "204",
-          title: "ارزیابی قابلیت بازیافت و خطرات زیست‌محیطی پسماندهای الکترونیکی در ایران",
-          venue: "کنگره ملی مدیریت پسماند",
-          year: "1399",
-          type: "مقاله کنفرانسی",
-          authors: "دکتر احمدرضا کرباسی، سهیل آقایانی",
-          url: "https://civilica.com/doc/204/"
-        },
-        {
-          id: "205",
-          title: "طرح پژوهشی تدوین استانداردهای ملی سنجش پساب‌های صنعتی دریایی",
-          venue: "پژوهشکده علوم محیطی دانشگاه تهران",
-          year: "1398",
-          type: "طرح پژوهشی",
-          authors: "دکتر احمدرضا کرباسی، دکتر رودابه سامعی",
-          url: "https://civilica.com/doc/205/"
-        },
-        {
-          id: "206",
-          title: "سنجش غلظت کادمیم و سرب در بافت‌های زیستی ماهیان تالاب انزلی",
-          venue: "فصلنامه آبزی‌پروری و مدیریت منابع آبی",
-          year: "1397",
-          type: "مقاله ژورنالی",
-          authors: "دکتر احمدرضا کرباسی، مهندس فرزاد بهرامی",
-          url: "https://civilica.com/doc/206/"
-        }
-      ]
-    },
-    aghayani: {
-      profile: {
-        id: "384912",
-        name: "سهیل آقایانی",
-        affil: "پژوهشگر ارشد مهندسی محیط زیست، معماری سیستم‌های پایدار و انرژی زیستی، دانشگاه تهران",
-        url: "https://civilica.com/p/384912/"
-      },
-      articles: [
-        {
-          id: "301",
-          title: "ارزیابی چرخه حیات (LCA) تولید بیودیزل از روغن‌های پسماند خوراکی با کاتالیزورهای ناهمگن",
-          venue: "فصلنامه تخصصی انرژی‌های نو و پایداری",
-          year: "1403",
-          type: "مقاله ژورنالی",
-          authors: "سهیل آقایانی، دکتر رودابه سامعی",
-          url: "https://civilica.com/doc/301/"
-        },
-        {
-          id: "302",
-          title: "تحلیل ترمودینامیکی و اقتصادی تبدیل پسماندهای کشاورزی به بیوگاز در مقیاس صنعتی",
-          venue: "هفتمین همایش بین‌المللی انرژی و محیط زیست",
-          year: "1402",
-          type: "مقاله کنفرانسی",
-          authors: "سهیل آقایانی، دکتر ناصر مهردادی",
-          url: "https://civilica.com/doc/302/"
-        },
-        {
-          id: "303",
-          title: "مدل‌سازی سناریوهای کربن‌صفر در سیستم‌های مدیریت پسماند شهری با نرم‌افزار SimaPro",
-          venue: "پژوهش‌های مهندسی محیط زیست",
-          year: "1402",
-          type: "مقاله ژورنالی",
-          authors: "سهیل آقایانی، دکتر رودابه سامعی، دکتر ناصر مهردادی",
-          url: "https://civilica.com/doc/303/"
-        },
-        {
-          id: "304",
-          title: "طرح پژوهشی سنجش ردپای کربن زنجیره تأمین انرژی پاک در ایران",
-          venue: "مرکز مطالعات پایداری محیط زیست",
-          year: "1401",
-          type: "طرح پژوهشی",
-          authors: "سهیل آقایانی، دکتر احمدرضا کرباسی",
-          url: "https://civilica.com/doc/304/"
-        },
-        {
-          id: "305",
-          title: "مقایسه زیست‌محیطی انواع کاتالیست‌های سبز در سنتز سوخت‌های پاک زیستی",
-          venue: "ششمین کنفرانس شیمی سبز و فناوری نانو",
-          year: "1401",
-          type: "مقاله کنفرانسی",
-          authors: "سهیل آقایانی، مهندس رضا رضایی",
-          url: "https://civilica.com/doc/305/"
-        }
-      ]
-    }
-  };
-
+  // No bundled sample data; live input only.
   // State
   var state = {
     profile: null,
@@ -333,6 +29,18 @@
   };
 
   var apiBaseUrl = String(window.CIVILICA_API_BASE_URL || "").replace(/\/+$/, "");
+
+  function apiUrl(path) {
+    return apiBaseUrl + path;
+  }
+
+  function setResultsVisible(visible) {
+    ["author-card", "control-deck", "references-view", "table-view", "analytics-view", "pagination"]
+      .forEach(function (id) {
+        var element = document.getElementById(id);
+        if (element) element.hidden = !visible;
+      });
+  }
 
   // Helpers
   function toPersianDigits(value) {
@@ -578,20 +286,26 @@
 
   // Load Profile Dataset
   function loadDataset(data) {
-    state.profile = data.profile;
-    state.articles = data.articles;
-    state.selected = new Set(data.articles.map(function (a) { return a.id; }));
-    state.targetAuthor = data.profile.name;
+    var profile = data && data.profile ? data.profile : {};
+    var articles = data && Array.isArray(data.articles) ? data.articles : [];
+    if (!articles.length) return false;
+
+    state.profile = profile;
+    state.articles = articles;
+    state.selected = new Set(articles.map(function (a) { return a.id; }));
+    state.targetAuthor = profile.name || "";
     state.authorFilter = "all";
     state.page = 1;
 
     var targetInput = document.getElementById("target-author-input");
     if (targetInput) targetInput.value = state.targetAuthor;
 
+    setResultsVisible(true);
     updateAuthorHeader();
     updateKpis();
     updateAuthorFilterOptions();
     renderActiveView();
+    return true;
   }
 
   // Update Author Header & Target Panel
@@ -603,8 +317,12 @@
     var link = document.getElementById("author-link");
     if (link) link.href = p.url || "#";
 
-    var initials = p.name.split(" ").filter(Boolean).map(function (w) { return w[0]; }).slice(0, 2).join("");
-    document.getElementById("author-initials").textContent = initials || "CP";
+    var identicon = document.getElementById("author-identicon");
+    if (identicon && window.jdenticon) {
+      var identity = p.id || p.url || p.name || "civilicapulse";
+      identicon.setAttribute("data-jdenticon-value", identity);
+      window.jdenticon.update(identicon, identity);
+    }
   }
 
   // Gather Unique Authors for the Filter Dropdown
@@ -628,7 +346,7 @@
       return authorsMap[b] - authorsMap[a];
     });
 
-    var html = '<option value="all">همهٔ نویسندگان و همکاران (' + toPersianDigits(state.articles.length) + ')</option>';
+    var html = '<option value="all">همهٔ نویسندگان (' + toPersianDigits(state.articles.length) + ')</option>';
     sorted.forEach(function (name) {
       var count = authorsMap[name];
       var isSelected = state.authorFilter === name ? " selected" : "";
@@ -692,6 +410,7 @@
     tableView.style.display = "none";
     analyticsView.style.display = "none";
     pagination.style.display = "none";
+    pagination.hidden = true;
 
     if (state.view === "cards") {
       refView.style.display = "flex";
@@ -725,6 +444,7 @@
     var paged = visible.slice(start, start + state.pageSize);
 
     if (visible.length > state.pageSize) {
+      pagination.hidden = false;
       pagination.style.display = "flex";
       document.getElementById("pagination-info").textContent = "صفحه " + toPersianDigits(state.page) + " از " + toPersianDigits(totalPages) + " · " + toPersianDigits(visible.length) + " مقاله";
       document.getElementById("prev-page").disabled = state.page <= 1;
@@ -931,62 +651,53 @@
     }).join("");
   }
 
-  // Word Document Client-Side Generator with Target Bolding
-  function generateWordDocument() {
+  // Word Document Generator — use the backend so .docx and Persian typography stay correct
+  async function generateWordDocument() {
     var selectedArticles = state.articles.filter(function (a) {
       return state.selected.has(a.id);
     });
 
     if (selectedArticles.length === 0) {
-      showToast("لطفاً حداقل یک مقاله را برای خروجی انتخاب کنید.");
+      showToast("ابتدا مقاله‌ای را انتخاب کنید.");
       return;
     }
 
-    var targetClean = cleanAuthor(state.targetAuthor);
-    var style = state.citationStyle;
+    var exportButton = document.getElementById("btn-export-word");
+    var includeLinks = document.getElementById("include-links");
+    if (exportButton) exportButton.disabled = true;
 
-    var citationsHtml = selectedArticles.map(function (a, idx) {
-      var text = formatCitation(a, idx + 1, style, state.targetAuthor, false);
-      // In Word HTML, bold the target author if requested
-      if (state.boldTargetAuthor && targetClean) {
-        var re = new RegExp("(" + escapeRegex(targetClean) + ")", "gi");
-        text = text.replace(re, "<b style='font-weight:bold;'>$1</b>");
+    try {
+      var response = await fetch(apiUrl("/api/export-word"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          profile: state.profile,
+          articles: selectedArticles,
+          style: state.citationStyle,
+          include_links: includeLinks ? includeLinks.checked : true,
+          file_type: "docx"
+        })
+      });
+
+      if (!response.ok) {
+        var errorPayload = await response.json().catch(function () { return {}; });
+        throw new Error(errorPayload.error || "ساخت فایل Word انجام نشد.");
       }
-      return '<p class="citation">' + text + '</p>';
-    }).join("\n");
 
-    var docHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
-      "xmlns:w='urn:schemas-microsoft-com:office:word' " +
-      "xmlns='http://www.w3.org/TR/REC-html40'>\n" +
-      "<head>\n" +
-      "<meta charset='utf-8'>\n" +
-      "<title>فهرست مقالات استخراج‌شده</title>\n" +
-      "<!--[if gte mso 9]>\n" +
-      "<xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml>\n" +
-      "<![endif]-->\n" +
-      "<style>\n" +
-      "@page { size: 21.0cm 29.7cm; margin: 2.5cm 2.5cm 2.5cm 2.5cm; mso-page-orientation: portrait; }\n" +
-      "body { font-family: 'B Nazanin', 'Times New Roman', serif; font-size: 12pt; direction: rtl; text-align: right; line-height: 1.6; }\n" +
-      "h1 { font-family: 'B Nazanin'; font-size: 16pt; font-weight: bold; text-align: right; margin-bottom: 12pt; }\n" +
-      "p.citation { margin-top: 0pt; margin-bottom: 8pt; text-align: right; direction: rtl; font-family: 'B Nazanin'; font-size: 12pt; }\n" +
-      "span.english { font-family: 'Times New Roman'; font-size: 11pt; direction: ltr; }\n" +
-      "</style>\n" +
-      "</head>\n" +
-      "<body>\n" +
-      "<h1>فهرست مقالات استنادشده — " + escapeHtml(state.targetAuthor) + "</h1>\n" +
-      citationsHtml + "\n" +
-      "</body>\n" +
-      "</html>";
-
-    var blob = new Blob([docHtml], { type: "application/msword;charset=utf-8" });
-    var link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "CivilicaPulse_" + state.targetAuthor.replace(/\s+/g, "_") + ".doc";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-    showToast("فایل Word با تفکیک نویسندهٔ هدف با موفقیت دانلود شد.");
+      var blob = await response.blob();
+      var disposition = response.headers.get("Content-Disposition") || "";
+      var filenameMatch = disposition.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
+      var filename = "civilica-references-" + state.citationStyle + ".docx";
+      if (filenameMatch) {
+        filename = decodeURIComponent(filenameMatch[1] || filenameMatch[2]);
+      }
+      downloadBlob(blob, filename);
+      showToast("فایل Word آماده شد.");
+    } catch (error) {
+      showToast(error.message || "ساخت فایل Word انجام نشد.");
+    } finally {
+      if (exportButton) exportButton.disabled = false;
+    }
   }
 
   // Export BibTeX
@@ -1080,7 +791,6 @@
     var tabs = [
       { btn: "tab-btn-url", panel: "tab-content-url" },
       { btn: "tab-btn-html", panel: "tab-content-html" },
-      { btn: "tab-btn-demo", panel: "tab-content-demo" },
       { btn: "tab-btn-bookmarklet", panel: "tab-content-bookmarklet" }
     ];
 
@@ -1212,7 +922,7 @@
       });
     });
 
-    // Click delegation for single copy, edit authors, checkbox, demo profiles
+    // Click delegation for copy, author editing, and selection
     document.addEventListener("click", function (e) {
       // Single Copy Button
       var copyBtn = e.target.closest(".btn-copy-one");
@@ -1304,15 +1014,6 @@
         return;
       }
 
-      // Demo Chips / Cards
-      var demoTarget = e.target.closest("[data-demo]");
-      if (demoTarget) {
-        var key = demoTarget.getAttribute("data-demo");
-        if (DEMO_PROFILES[key]) {
-          loadDataset(DEMO_PROFILES[key]);
-          showToast("پروفایل " + DEMO_PROFILES[key].profile.name + " بارگذاری شد.");
-        }
-      }
     });
 
     // Pagination
@@ -1341,13 +1042,26 @@
     var dropzone = document.getElementById("html-dropzone");
 
     if (parseBtn) {
-      parseBtn.addEventListener("click", function () {
+      parseBtn.addEventListener("click", async function () {
         var text = rawText.value.trim();
-        if (!text) return showToast("لطفاً ابتدا کد HTML صفحه را وارد کنید.");
-        var parsed = parseCivilicaHtml(text, "https://civilica.com");
-        if (parsed.articles.length === 0) return showToast("هیچ مقاله‌ای در کد واردشده پیدا نشد.");
-        loadDataset(parsed);
-        showToast(toPersianDigits(parsed.articles.length) + " مقاله استخراج شد.");
+        if (!text) return showToast("ابتدا HTML را وارد کنید.");
+
+        parseBtn.disabled = true;
+        try {
+          var response = await fetch(apiUrl("/api/parse-html"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ html: text })
+          });
+          var payload = await response.json();
+          if (!response.ok) throw new Error(payload.error || "پردازش HTML انجام نشد.");
+          if (!loadDataset(payload)) throw new Error("مقاله‌ای در HTML پیدا نشد.");
+          showToast(toPersianDigits(payload.count || payload.articles.length) + " مقاله آماده شد.");
+        } catch (error) {
+          showToast(error.message || "پردازش HTML انجام نشد.");
+        } finally {
+          parseBtn.disabled = false;
+        }
       });
     }
 
@@ -1393,7 +1107,7 @@
     }
   }
 
-  // URL Form Submission — fully client-side via CORS proxy
+  // URL Form Submission — use the CivilicaPulse backend, not a public proxy
   function initForm() {
     var form = document.getElementById("profile-form");
     if (!form) return;
@@ -1415,25 +1129,18 @@
       var statusEl = document.getElementById("scrape-status");
       statusEl.style.display = "flex";
 
-      // Try CORS proxy to fetch directly in browser (no server needed)
-      var proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
-
       try {
-        var resp = await fetch(proxyUrl);
-        if (!resp.ok) throw new Error("Proxy error " + resp.status);
-        var json = await resp.json();
-        var htmlText = json.contents;
-        if (!htmlText) throw new Error("Empty response from proxy");
-        var parsed = parseCivilicaHtml(htmlText, url);
-        if (parsed.articles.length === 0) {
-          showToast("هیچ مقاله‌ای یافت نشد. صفحه را با Ctrl+S ذخیره کنید و HTML آن را در تب ۲ بچسبانید.");
-        } else {
-          loadDataset(parsed);
-          showToast(toPersianDigits(parsed.articles.length) + " مقاله با موفقیت استخراج شد.");
-        }
+        var response = await fetch(apiUrl("/api/parse-profile"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url: url })
+        });
+        var payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "دریافت پروفایل انجام نشد.");
+        if (!loadDataset(payload)) throw new Error("مقاله‌ای در این پروفایل پیدا نشد.");
+        showToast(toPersianDigits(payload.count || payload.articles.length) + " مقاله آماده شد.");
       } catch (err) {
-        // Fallback message — direct browser CORS usually blocked on civilica
-        showToast("دسترسی مستقیم مسدود شد. صفحه را در مرورگر باز کنید، Ctrl+S بزنید، سپس فایل HTML را در تب ۲ دراپ کنید.");
+        showToast(err.message || "دریافت پروفایل انجام نشد.");
       } finally {
         statusEl.style.display = "none";
       }
@@ -1450,11 +1157,8 @@
     initHtmlImport();
     initForm();
 
-    // Check if bookmarklet passed HTML, else default to Dr. Roudabeh Samiee profile!
+    // Import only when the user explicitly used the bookmarklet; otherwise stay empty.
     checkBookmarkletImport();
-    if (!state.profile) {
-      loadDataset(DEMO_PROFILES.samiee);
-    }
   });
 
 })();

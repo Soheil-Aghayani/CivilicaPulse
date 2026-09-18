@@ -121,6 +121,10 @@ body {
   overflow-x: hidden;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 /* Accessibility & Focus */
 .sr-only {
   position: absolute;
@@ -1116,6 +1120,33 @@ textarea:focus-visible {
   flex-wrap: wrap;
 }
 
+.export-options {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.option-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.option-toggle input {
+  accent-color: var(--primary-light);
+  width: 16px;
+  height: 16px;
+}
+
+.selection-count {
+  white-space: nowrap;
+}
+
 /* References View Cards */
 .references-list {
   display: flex;
@@ -1408,5 +1439,50 @@ textarea:focus-visible {
   }
   .metrics-row {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .tabs-header {
+    gap: 6px;
+  }
+
+  .tab-btn,
+  .view-btn {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    padding: 8px;
+  }
+
+  .tab-btn span,
+  .view-btn span,
+  .compact-label {
+    display: none;
+  }
+
+  #extract-button {
+    width: 48px;
+    justify-content: center;
+    padding-inline: 0.75rem;
+  }
+
+  .export-row {
+    align-items: stretch;
+  }
+
+  .export-group,
+  .export-options {
+    width: 100%;
+  }
+
+  .export-group {
+    justify-content: flex-start;
+  }
+
+  .export-options {
+    justify-content: space-between;
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 10px;
   }
 }
