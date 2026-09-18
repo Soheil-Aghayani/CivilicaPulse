@@ -13,6 +13,7 @@
     pageSize: 10
   };
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var apiBaseUrl = String(window.CIVILICA_API_BASE_URL || "").replace(/\/+$/, "");
 
   var elements = {
     form: document.getElementById("profile-form"),
@@ -50,6 +51,10 @@
 
   function icon(name) {
     return '<svg class="icon" aria-hidden="true"><use href="#icon-' + name + '"></use></svg>';
+  }
+
+  function apiUrl(path) {
+    return apiBaseUrl + path;
   }
 
   function escapeHtml(value) {
@@ -130,7 +135,7 @@
   async function postJson(endpoint, body, button, loadingText) {
     setLoading(button, true, loadingText);
     try {
-      var response = await fetch(endpoint, {
+      var response = await fetch(apiUrl(endpoint), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body)
@@ -331,7 +336,7 @@
     var fileType = elements.wordFileType.value === "doc" ? "doc" : "docx";
     setLoading(elements.exportButton, true, "در حال ساخت فایل Word...");
     try {
-      var response = await fetch("/api/export-word", {
+      var response = await fetch(apiUrl("/api/export-word"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

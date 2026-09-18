@@ -37,6 +37,32 @@ app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = MAX_HTML_BYTES + 256 * 1024
 
 
+def allowed_origins() -> set[str]:
+    configured = os.environ.get("CIVILICA_ALLOWED_ORIGINS", "")
+    origins = {
+        origin.strip()
+        for origin in configured.split(",")
+        if origin.strip()
+    }
+    origins.update({
+        "http://127.0.0.1:5000",
+        "http://localhost:5000",
+    })
+    return origins
+
+
+@app.after_request
+def add_cors_headers(response):
+    origin = request.headers.get("Origin", "")
+    if origin in allowed_origins():
+        response.headers["Access-Control-Allow-Origin"] = origin
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+        response.headers["Vary"] = "Origin"
+    return response
+
+
 def json_error(message: str, status: int = 400):
     return jsonify({"ok": False, "error": message}), status
 
@@ -147,6 +173,11 @@ def boolean_value(value: object, default: bool = True) -> bool:
 @app.get("/")
 def index():
     return send_from_directory(WEB_DIR, "index.html")
+
+
+@app.get("/api/health")
+def health():
+    return jsonify({"ok": True, "service": "CivilicaPulse"})
 
 
 @app.post("/api/parse-profile")
