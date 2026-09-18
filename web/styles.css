@@ -188,18 +188,16 @@ a {
   display: grid;
   width: 44px;
   height: 44px;
-  overflow: hidden;
   place-items: center;
-  border-radius: 12px;
-  color: #fff;
-  background: var(--primary);
+  flex: 0 0 auto;
+  background: transparent;
 }
 
 .brand-mark img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .brand-copy {
@@ -326,6 +324,51 @@ a {
   gap: 10px;
 }
 
+.url-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.url-actions .button-primary {
+  flex: 1 1 auto;
+}
+
+.icon-button {
+  width: 44px;
+  min-width: 44px;
+  padding-inline: 10px;
+}
+
+.asset-icon {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  background: currentColor;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+
+.asset-icon-code {
+  -webkit-mask-image: url("/assets/icons/fluent/code-24-regular.svg");
+  mask-image: url("/assets/icons/fluent/code-24-regular.svg");
+}
+
+.asset-icon-chevron-left {
+  -webkit-mask-image: url("/assets/icons/fluent/chevron-left-24-regular.svg");
+  mask-image: url("/assets/icons/fluent/chevron-left-24-regular.svg");
+}
+
+.asset-icon-chevron-right {
+  -webkit-mask-image: url("/assets/icons/fluent/chevron-right-24-regular.svg");
+  mask-image: url("/assets/icons/fluent/chevron-right-24-regular.svg");
+}
+
 .input-wrap {
   position: relative;
 }
@@ -353,6 +396,11 @@ textarea {
 input {
   min-height: 50px;
   padding: 10px 48px 10px 15px;
+}
+
+#profile-url {
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 input::placeholder,
@@ -604,6 +652,14 @@ input[type="checkbox"]:focus-visible {
   border-top: 1px solid var(--soft);
 }
 
+.filter-controls {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 14px;
+  flex: 1 1 auto;
+}
+
 .search-filter {
   position: relative;
   display: block;
@@ -632,6 +688,32 @@ input[type="checkbox"]:focus-visible {
   gap: 6px;
 }
 
+.page-size-control {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.page-size-control select {
+  min-width: 64px;
+  min-height: 42px;
+  padding: 7px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
+  background: #fff;
+  font-family: "Segoe UI", Arial, sans-serif;
+  font-size: 13px;
+  font-variant-numeric: lining-nums tabular-nums;
+  font-weight: 700;
+  text-align: center;
+}
+
 .filter-pill {
   min-height: 44px;
   padding: 5px 10px;
@@ -657,7 +739,7 @@ input[type="checkbox"]:focus-visible {
 
 .pagination-bar {
   display: grid;
-  grid-template-columns: minmax(100px, 1fr) auto minmax(100px, 1fr);
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
   align-items: center;
   gap: 12px;
   margin-top: 16px;
@@ -668,7 +750,9 @@ input[type="checkbox"]:focus-visible {
 }
 
 .pagination-button {
-  min-width: 100px;
+  width: 44px;
+  min-width: 44px;
+  padding-inline: 10px;
 }
 
 .pagination-status {
@@ -772,10 +856,15 @@ input[type="checkbox"]:focus-visible {
   min-width: 28px;
   color: var(--muted);
   font-size: 12px;
-  direction: ltr;
+  direction: rtl;
   unicode-bidi: isolate;
   text-align: right;
   justify-self: end;
+}
+
+.persian-numeric {
+  font-family: "IRANYekanXFaNum", Tahoma, sans-serif;
+  font-variant-numeric: normal;
 }
 
 .empty-state {
@@ -818,13 +907,6 @@ input[type="checkbox"]:focus-visible {
   color: var(--primary-strong);
   font-size: 18px;
   line-height: 1.45;
-}
-
-.format-intro,
-.format-help {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .format-controls {
@@ -878,13 +960,18 @@ input[type="checkbox"]:focus-visible {
   color: var(--foreground);
   background: #fff;
   cursor: pointer;
-  font-size: 12px;
+  direction: rtl;
+  font-family: "IRANYekanXFaNum", Tahoma, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
   outline: none;
 }
 
-.format-help {
-  margin-top: 12px;
-  line-height: 1.7;
+.file-type-control option {
+  direction: rtl;
+  font-family: "IRANYekanXFaNum", Tahoma, sans-serif;
+  font-size: 13px;
 }
 
 .link-option {
@@ -1002,8 +1089,17 @@ input[type="checkbox"]:focus-visible {
     grid-template-columns: 1fr;
   }
 
-  .url-row .button {
+  .url-actions {
     width: 100%;
+  }
+
+  .url-actions .button-primary {
+    width: auto;
+  }
+
+  .url-actions .icon-button {
+    width: 52px;
+    flex-basis: 52px;
   }
 
   .profile-summary,
@@ -1040,12 +1136,24 @@ input[type="checkbox"]:focus-visible {
     width: 100%;
   }
 
+  .filter-controls {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
   .filter-pill {
     flex: 1;
   }
 
   .search-filter {
     width: 100%;
+  }
+
+  .page-size-control {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .steps-grid {
@@ -1129,7 +1237,8 @@ input[type="checkbox"]:focus-visible {
   }
 
   .pagination-button {
-    min-width: 0;
+    width: 44px;
+    min-width: 44px;
     padding-inline: 8px;
   }
 

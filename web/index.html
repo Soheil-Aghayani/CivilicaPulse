@@ -65,7 +65,6 @@
 
     <main id="main-content" class="shell page-main">
       <section class="hero" aria-labelledby="page-title">
-        <p class="eyebrow">Civilica · Researcher profile</p>
         <h1 id="page-title">فهرست مقالات پژوهشگر را یک‌جا دریافت کنید.</h1>
         <p class="hero-text">
           لینک صفحهٔ پژوهشگر سیویلیکا را وارد کنید، مقاله‌ها را بررسی و انتخاب کنید،
@@ -92,20 +91,20 @@
                      placeholder="https://civilica.com/p/176225/"
                      required>
             </div>
-            <button class="button button-primary" id="extract-button" type="submit">
-              <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-              <span>استخراج مقاله‌ها</span>
-            </button>
+            <div class="url-actions">
+              <button class="button button-primary" id="extract-button" type="submit">
+                <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+                <span>استخراج مقاله‌ها</span>
+              </button>
+              <button class="button button-quiet icon-button" id="toggle-html-import" type="button"
+                      aria-expanded="false" aria-controls="html-import" aria-label="وارد کردن HTML صفحه"
+                      title="وارد کردن HTML صفحه">
+                <span class="asset-icon asset-icon-code" aria-hidden="true"></span>
+                <span class="sr-only">وارد کردن HTML صفحه</span>
+              </button>
+            </div>
           </div>
-          <p class="field-help">نمونه: صفحه‌ای که با <span dir="ltr">civilica.com/p/</span> شروع می‌شود.</p>
         </form>
-
-        <div class="fallback-toggle">
-          <button class="text-button" id="toggle-html-import" type="button" aria-expanded="false" aria-controls="html-import">
-            <svg class="icon" aria-hidden="true"><use href="#icon-upload"></use></svg>
-            اگر دسترسی مستقیم بسته بود، HTML صفحه را وارد کنید
-          </button>
-        </div>
 
         <div id="html-import" class="html-import" hidden>
           <label class="field-label" for="raw-html">کد HTML صفحهٔ پروفایل</label>
@@ -119,10 +118,6 @@
           </div>
         </div>
 
-        <div class="privacy-note">
-          <svg class="icon" aria-hidden="true"><use href="#icon-info"></use></svg>
-          <span>اطلاعات فقط برای همین درخواست پردازش می‌شود و در این برنامه ذخیره نمی‌شود.</span>
-        </div>
       </section>
 
       <section id="results-section" class="results-section" hidden aria-labelledby="results-title">
@@ -132,7 +127,6 @@
               <svg class="profile-identicon" aria-hidden="true"></svg>
             </div>
             <div>
-              <p class="section-kicker">پژوهشگر پیدا شد</p>
               <h2 id="results-title">—</h2>
               <a id="profile-source" class="source-link" href="#" target="_blank" rel="noreferrer">
                 <svg class="icon" aria-hidden="true"><use href="#icon-external"></use></svg>
@@ -161,17 +155,26 @@
             </div>
           </div>
           <div class="filter-row">
-            <label class="search-filter">
-              <svg class="icon" aria-hidden="true"><use href="#icon-filter"></use></svg>
-              <span class="sr-only">جست‌وجو در عنوان مقاله‌ها</span>
-              <input id="article-filter" type="search" placeholder="جست‌وجو در عنوان مقاله‌ها">
-            </label>
-            <div class="filter-pills" role="group" aria-label="فیلتر نوع مقاله">
-              <button class="filter-pill is-active" type="button" data-filter="all">همه</button>
-              <button class="filter-pill" type="button" data-filter="مقاله کنفرانسی">کنفرانسی</button>
-              <button class="filter-pill" type="button" data-filter="مقاله ژورنالی">ژورنالی</button>
-              <button class="filter-pill" type="button" data-filter="طرح پژوهشی">طرح پژوهشی</button>
+            <div class="filter-controls">
+              <label class="search-filter">
+                <svg class="icon" aria-hidden="true"><use href="#icon-filter"></use></svg>
+                <span class="sr-only">جست‌وجو در عنوان مقاله‌ها</span>
+                <input id="article-filter" type="search" placeholder="جست‌وجو در عنوان مقاله‌ها">
+              </label>
+              <div class="filter-pills" role="group" aria-label="فیلتر نوع مقاله">
+                <button class="filter-pill is-active" type="button" data-filter="all">همه</button>
+                <button class="filter-pill" type="button" data-filter="مقاله کنفرانسی">کنفرانسی</button>
+                <button class="filter-pill" type="button" data-filter="مقاله ژورنالی">ژورنالی</button>
+                <button class="filter-pill" type="button" data-filter="طرح پژوهشی">طرح پژوهشی</button>
+              </div>
             </div>
+            <label class="page-size-control" for="page-size">
+              <span>مقاله در هر صفحه</span>
+              <select id="page-size" dir="ltr" aria-label="تعداد مقاله در هر صفحه">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+              </select>
+            </label>
           </div>
         </div>
 
@@ -181,7 +184,6 @@
               <p class="section-kicker">مرحلهٔ سوم</p>
               <h2>سبک ارجاع و فایل خروجی</h2>
             </div>
-            <p class="format-intro">سبک مناسب مقاله یا پایان‌نامه‌تان را انتخاب کنید.</p>
           </div>
           <div class="format-controls">
             <div class="style-control">
@@ -208,15 +210,19 @@
             <input id="include-civilica-links" type="checkbox" checked>
             <span>افزودن لینک مقاله‌های سیویلیکا به فایل Word</span>
           </label>
-          <p class="format-help">هر دو فایل در Word باز می‌شوند؛ DOCX فرمت استاندارد امروزی و DOC گزینهٔ سازگاری قدیمی است.</p>
-          <p class="format-help">اگر نام نویسندگان در صفحهٔ عمومی سیویلیکا نباشد، نام پژوهشگر به‌عنوان جایگزین می‌آید و باید قبل از استناد نهایی بررسی شود.</p>
         </div>
 
         <div id="results-list" class="results-list" aria-live="polite"></div>
         <nav class="pagination-bar" id="pagination" aria-label="صفحه‌بندی مقاله‌ها" hidden>
-          <button class="button button-quiet pagination-button" id="previous-page" type="button">صفحهٔ قبل</button>
+          <button class="button button-quiet pagination-button icon-button" id="previous-page" type="button"
+                  aria-label="صفحهٔ قبل" title="صفحهٔ قبل">
+            <span class="asset-icon asset-icon-chevron-right" aria-hidden="true"></span>
+          </button>
           <span class="pagination-status" id="pagination-status" aria-live="polite"></span>
-          <button class="button button-quiet pagination-button" id="next-page" type="button">صفحهٔ بعد</button>
+          <button class="button button-quiet pagination-button icon-button" id="next-page" type="button"
+                  aria-label="صفحهٔ بعد" title="صفحهٔ بعد">
+            <span class="asset-icon asset-icon-chevron-left" aria-hidden="true"></span>
+          </button>
         </nav>
         <div id="empty-results" class="empty-state panel" hidden>
           <svg class="empty-icon icon" aria-hidden="true"><use href="#icon-search"></use></svg>
@@ -236,31 +242,6 @@
         </div>
       </section>
 
-      <section class="how-it-works" aria-labelledby="how-title">
-        <div class="section-heading">
-          <div>
-            <p class="section-kicker">راهنمای کوتاه</p>
-            <h2 id="how-title">سه قدم تا فایل مرتب</h2>
-          </div>
-        </div>
-        <div class="steps-grid">
-          <article class="step-card">
-            <span class="step-number">1</span>
-            <h3>لینک را وارد کنید</h3>
-            <p>صفحهٔ عمومی پژوهشگر در سیویلیکا کافی است؛ حساب کاربری لازم نیست.</p>
-          </article>
-          <article class="step-card">
-            <span class="step-number">2</span>
-            <h3>فهرست را بررسی کنید</h3>
-            <p>عنوان، نوع، سال و محل انتشار را ببینید و فقط موارد دلخواه را انتخاب کنید.</p>
-          </article>
-          <article class="step-card">
-            <span class="step-number">3</span>
-            <h3>فایل Word را دریافت کنید</h3>
-            <p>خروجی فارسی و راست‌چین با سبک ارجاع انتخابی برای ویرایش آماده می‌شود.</p>
-          </article>
-        </div>
-      </section>
     </main>
 
     <footer class="site-footer">

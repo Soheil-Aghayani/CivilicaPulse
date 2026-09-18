@@ -10,7 +10,7 @@
     citationStyle: "apa7",
     includeLinks: true,
     page: 1,
-    pageSize: 12
+    pageSize: 10
   };
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -37,6 +37,7 @@
     paginationStatus: document.getElementById("pagination-status"),
     emptyResults: document.getElementById("empty-results"),
     articleFilter: document.getElementById("article-filter"),
+    pageSize: document.getElementById("page-size"),
     selectVisible: document.getElementById("select-visible-button"),
     selectedCount: document.getElementById("selected-count"),
     exportButton: document.getElementById("export-button"),
@@ -66,6 +67,13 @@
         return String(persian);
       }
       return String("٠١٢٣٤٥٦٧٨٩".indexOf(digit));
+    });
+  }
+
+  function toPersianDigits(value) {
+    var persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+    return String(value).replace(/[0-9]/g, function (digit) {
+      return persianDigits[digit];
     });
   }
 
@@ -132,6 +140,7 @@
     state.citationStyle = "apa7";
     state.includeLinks = true;
     state.page = 1;
+    elements.pageSize.value = String(state.pageSize);
 
     elements.articleFilter.value = "";
     document.querySelectorAll(".filter-pill").forEach(function (pill) {
@@ -212,7 +221,7 @@
       var articleId = escapeHtml(article.id);
       var title = escapeHtml(toEnglishDigits(article.title || "بدون عنوان"));
       var venue = escapeHtml(toEnglishDigits(article.venue || "محل انتشار نامشخص"));
-      var year = escapeHtml(toEnglishDigits(article.year || "—"));
+      var year = escapeHtml(toPersianDigits(article.year || "—"));
       var type = escapeHtml(toEnglishDigits(article.type || "مقاله"));
       var url = escapeHtml(article.url || "#");
       var number = state.articles.indexOf(article) + 1;
@@ -224,14 +233,14 @@
             '<h3 class="article-title">' + title + "</h3>" +
             '<div class="article-meta">' +
               '<span class="meta-tag">' + type + "</span>" +
-              '<span>سال <bdi class="numeric">' + year + "</bdi></span>" +
+              '<span>سال <bdi class="persian-numeric" dir="rtl">' + year + "</bdi></span>" +
               '<span class="article-venue" title="' + venue + '">' + venue + "</span>" +
             "</div>" +
             '<a class="article-link" href="' + url + '" target="_blank" rel="noreferrer">' +
               icon("external") + "مشاهده در سیویلیکا" +
             "</a>" +
           "</div>" +
-          '<span class="article-index numeric" aria-hidden="true">' + toEnglishDigits(number) + "</span>" +
+          '<span class="article-index" aria-hidden="true">' + toPersianDigits(number) + "</span>" +
         "</article>"
       );
     }).join("");
@@ -364,6 +373,16 @@
 
   elements.articleFilter.addEventListener("input", function () {
     state.query = elements.articleFilter.value;
+    state.page = 1;
+    renderResults();
+  });
+
+  elements.pageSize.addEventListener("change", function () {
+    var nextPageSize = Number(elements.pageSize.value);
+    if (nextPageSize !== 5 && nextPageSize !== 10) {
+      nextPageSize = 10;
+    }
+    state.pageSize = nextPageSize;
     state.page = 1;
     renderResults();
   });
