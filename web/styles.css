@@ -1230,6 +1230,10 @@ input[type="checkbox"]:focus-visible {
     flex: 1;
   }
 
+  .toolbar-actions .selection-scope-button {
+    flex: 0 0 44px;
+  }
+
   .article-card {
     grid-template-columns: auto minmax(0, 1fr) auto;
     padding: 15px;

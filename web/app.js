@@ -279,12 +279,15 @@
     var allArticlesSelected = state.articles.length > 0 && state.articles.every(function (article) {
       return state.selected.has(article.id);
     });
+    var visibleActionLabel = allPageSelected ? "لغو انتخاب صفحه" : "انتخاب این صفحه";
     elements.selectAll.innerHTML = allArticlesSelected
       ? icon("close") + "لغو انتخاب همهٔ مقاله‌ها"
       : icon("check") + "انتخاب همهٔ مقاله‌ها";
-    elements.selectVisible.innerHTML = allPageSelected
-      ? icon("close") + "لغو انتخاب صفحه"
-      : icon("check") + "انتخاب این صفحه";
+    elements.selectVisible.innerHTML =
+      icon(allPageSelected ? "close" : "check") +
+      '<span class="sr-only">' + visibleActionLabel + "</span>";
+    elements.selectVisible.setAttribute("aria-label", visibleActionLabel);
+    elements.selectVisible.setAttribute("title", visibleActionLabel);
   }
 
   function toggleVisibleSelection() {
