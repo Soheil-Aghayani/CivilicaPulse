@@ -323,7 +323,7 @@
     selected: new Set(),
     filter: "all",
     authorFilter: "all",
-    targetAuthor: "دکتر رودابه سامعی",
+    targetAuthor: "",   // generalized: auto-filled from profile name, user can override freely
     boldTargetAuthor: true,
     query: "",
     citationStyle: "apa7",
@@ -421,89 +421,149 @@
     }
   }
 
-  // Client-Side DOM HTML Parser with Authors Extraction
+  // Client-Side DOM HTML Parser — Handles modern Civilica (Tailwind) page structure
   function parseCivilicaHtml(htmlText, fallbackUrl) {
     var parser = new DOMParser();
     var doc = parser.parseFromString(htmlText, "text/html");
 
+    // ── Researcher name ──────────────────────────────────────────────────────
     var h1 = doc.querySelector("h1");
     var titleTag = doc.querySelector("title");
-    var researcherName = h1 ? h1.textContent.trim() : (titleTag ? titleTag.textContent.split("-")[0].trim() : "پژوهشگر سیویلیکا");
+    var researcherName =
+      h1 ? h1.textContent.trim() :
+      titleTag ? titleTag.textContent.split("-")[0].trim() :
+      "پژوهشگر سیویلیکا";
 
     var articles = [];
     var seenIds = new Set();
 
-    var sectionMappings = [
-      { selector: "#confpaper", type: "مقاله کنفرانسی" },
-      { selector: "#journalpaper", type: "مقاله ژورنالی" },
-      { selector: "#researchs", type: "طرح پژوهشی" }
-    ];
+    // ── Collect ALL `a[href*="/doc/"]` links, skip PDF icon links ───────────
+    var allLinks = doc.querySelectorAll('a[href*="/doc/"]');
 
-    sectionMappings.forEach(function (sec) {
-      var container = doc.querySelector(sec.selector);
-      if (!container) return;
-      var links = container.querySelectorAll('a[href*="/doc/"]');
-      links.forEach(function (a) {
-        var href = a.getAttribute("href") || "";
-        var match = href.match(/\/doc\/(\d+)\/?/);
-        var id = match ? match[1] : "";
-        var title = (a.getAttribute("title") || a.textContent || "").trim();
-        if (!id || seenIds.has(id) || title === "دریافت فایل PDF مقاله" || !title) return;
-        seenIds.add(id);
+    allLinks.forEach(function (a) {
+      // Skip PDF download icon links (class="mx-1" OR title="دریافت فایل PDF مقاله")
+      if (a.classList.contains("mx-1")) return;
+      if ((a.getAttribute("title") || "").trim() === "دریافت فایل PDF مقاله") return;
 
-        var fullText = a.textContent || "";
-        var yearMatch = fullText.match(/\((\d{4})\)/);
-        var year = yearMatch ? yearMatch[1] : "1402";
+      var href = a.getAttribute("href") || "";
+      var match = href.match(/\/doc\/(\d+)\/?/);
+      if (!match) return;
+      var id = match[1];
+      if (seenIds.has(id)) return;
+      seenIds.add(id);
 
-        var venue = "محل انتشار نامشخص";
-        var iTag = a.querySelector("i");
-        if (iTag && iTag.textContent.trim()) {
-          venue = iTag.textContent.trim();
-        }
+      // Title: prefer title attribute, fall back to visible text (strip year/venue text)
+      var title = (a.getAttribute("title") || "").trim();
+      if (!title) {
+        // Remove known suffixes like "ارائه شده در..." and "(۱۴۰۲)"
+        title = (a.textContent || "").trim()
+          .replace(/[\(（]\d{4}[\)）]/g, "")
+          .replace(/(?:ارائه|منتشر)\s+شده\s+در.*$/u, "")
+          .trim();
+      }
+      if (!title) return;
 
-        // Try to see if authors are mentioned nearby
-        var authors = researcherName;
-        var parent = a.closest("li, p, div");
-        if (parent) {
-          var authorSpan = parent.querySelector(".author, .authors, span[class*='author']");
-          if (authorSpan && authorSpan.textContent.trim()) {
-            authors = authorSpan.textContent.trim();
+      // Year: look for 4-digit year in full text of the link
+      var linkText = a.textContent || "";
+      var yearMatchLatin = linkText.match(/\b(13\d{2}|14\d{2})\b/);
+      // Also handle Persian digits: ۱۴۰۲ etc.
+      var yearMatchPersian = linkText.match(/(۱[۳۴]\d{0,2})/u);
+      var year = "1402";
+      if (yearMatchLatin) {
+        year = yearMatchLatin[1];
+      } else if (yearMatchPersian) {
+        // Convert Persian to Latin
+        var py = yearMatchPersian[1];
+        var persianDigits = "۰۱۲۳۴۵۶۷۸۹";
+        year = py.split("").map(function (c) {
+          var i = persianDigits.indexOf(c);
+          return i >= 0 ? String(i) : c;
+        }).join("");
+      }
+
+      // Venue: the `<i>` tag immediately inside or right after this link's parent
+      var venue = "محل انتشار نامشخص";
+      var iEl = a.querySelector("i");
+      if (!iEl) {
+        // Try sibling <i> in same parent
+        var parent = a.parentNode;
+        if (parent) iEl = parent.querySelector("i");
+      }
+      if (iEl && iEl.textContent.trim()) {
+        venue = iEl.textContent.trim();
+      }
+
+      // Article type from headings above, or from link text keywords
+      var type = "مقاله";
+      var linkTextLower = linkText + " " + venue;
+      if (/ارائه\s+شده|کنفرانس|همایش|سمینار/u.test(linkTextLower)) {
+        type = "مقاله کنفرانسی";
+      } else if (/منتشر\s+شده|ژورنال|نشریه|فصلنامه|مجله/u.test(linkTextLower)) {
+        type = "مقاله ژورنالی";
+      } else if (/طرح\s+پژوهشی|پروژه\s+پژوهش/u.test(linkTextLower)) {
+        type = "طرح پژوهشی";
+      }
+      // Fallback: try to detect from surrounding heading text
+      if (type === "مقاله") {
+        // Walk up to find a heading that describes the section
+        var ancestor = a.parentNode;
+        for (var depth = 0; depth < 8 && ancestor; depth++, ancestor = ancestor.parentNode) {
+          var siblings = ancestor.parentNode ? ancestor.parentNode.children : [];
+          for (var si = 0; si < siblings.length; si++) {
+            var sib = siblings[si];
+            if (/h[1-6]/i.test(sib.tagName)) {
+              var hText = sib.textContent;
+              if (/کنفرانس|همایش/u.test(hText)) { type = "مقاله کنفرانسی"; depth = 99; break; }
+              if (/ژورنال|نشریه|فصلنامه/u.test(hText)) { type = "مقاله ژورنالی"; depth = 99; break; }
+            }
           }
         }
+      }
 
-        articles.push({
-          id: id,
-          title: title,
-          venue: venue,
-          year: year,
-          type: sec.type,
-          authors: authors,
-          url: "https://civilica.com/doc/" + id + "/"
-        });
+      // Co-authors: text siblings AFTER this link in the same parent, before the next link
+      var authors = researcherName;
+      var parentNode = a.parentNode;
+      if (parentNode) {
+        var nodes = parentNode.childNodes;
+        var foundLink = false;
+        var coAuthorParts = [];
+        for (var ni = 0; ni < nodes.length; ni++) {
+          var node = nodes[ni];
+          if (node === a) { foundLink = true; continue; }
+          if (!foundLink) continue;
+          if (node.nodeType === 3 /* TEXT_NODE */) {
+            var txt = node.textContent.replace(/\s+/g, " ").trim();
+            // Filter out short connective text, keep author lists (contain ، or multiple words)
+            if (txt.length > 2 && !/^(?:ارائه|منتشر|شده|در|و|با|از|را|که|به)$/u.test(txt)) {
+              coAuthorParts.push(txt);
+            }
+          } else if (node.nodeType === 1 /* ELEMENT_NODE */) {
+            var tag = (node.tagName || "").toLowerCase();
+            // Stop at next link or structural element (not <i>)
+            if (tag === "a" || tag === "br" || tag === "div" || tag === "p" || tag === "li" || tag === "ul") break;
+            if (tag !== "i") {
+              var elemTxt = node.textContent.replace(/\s+/g, " ").trim();
+              if (elemTxt.length > 2) coAuthorParts.push(elemTxt);
+            }
+          }
+        }
+        var coAuthorText = coAuthorParts.join(" ").replace(/\s+/g, " ").trim();
+        // Only use if it looks like an author string (contains ، Persian name separator)
+        if (coAuthorText && (coAuthorText.indexOf("،") >= 0 || coAuthorText.indexOf(",") >= 0 || coAuthorText.split(" ").length >= 2)) {
+          authors = coAuthorText;
+        }
+      }
+
+      articles.push({
+        id: id,
+        title: title,
+        venue: venue,
+        year: year,
+        type: type,
+        authors: authors,
+        url: "https://civilica.com/doc/" + id + "/"
       });
     });
-
-    if (articles.length === 0) {
-      var allLinks = doc.querySelectorAll('a[href*="/doc/"]');
-      allLinks.forEach(function (a, i) {
-        var href = a.getAttribute("href") || "";
-        var match = href.match(/\/doc\/(\d+)\/?/);
-        var id = match ? match[1] : String(i + 1);
-        var title = (a.getAttribute("title") || a.textContent || "").trim();
-        if (!title || title === "دریافت فایل PDF مقاله" || seenIds.has(id)) return;
-        seenIds.add(id);
-
-        articles.push({
-          id: id,
-          title: title,
-          venue: "همایش یا نشریه علمی",
-          year: "1402",
-          type: "مقاله",
-          authors: researcherName,
-          url: "https://civilica.com/doc/" + id + "/"
-        });
-      });
-    }
 
     return {
       profile: {
@@ -1333,7 +1393,7 @@
     }
   }
 
-  // URL Form Submission
+  // URL Form Submission — fully client-side via CORS proxy
   function initForm() {
     var form = document.getElementById("profile-form");
     if (!form) return;
@@ -1342,17 +1402,34 @@
       var url = document.getElementById("profile-url").value.trim();
       if (!url) return showToast("لطفاً آدرس صفحه پژوهشگر را وارد کنید.");
 
+      // Normalize civilica URL (support Persian digits in URL too)
+      var allDigits = "0123456789٠١٢٣٤٥٦٧٨٩";
+      var latinDigits = "0123456789012345678901234567890123456789";
+      url = url.replace(/[٠-٩]/g, function(d) { return String(allDigits.indexOf(d) % 10); });
+      if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+
       var statusEl = document.getElementById("scrape-status");
       statusEl.style.display = "flex";
 
+      // Try CORS proxy to fetch directly in browser (no server needed)
+      var proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
+
       try {
-        var resp = await fetch((apiBaseUrl || "") + "/api/profile?url=" + encodeURIComponent(url));
-        if (!resp.ok) throw new Error("Backend response error " + resp.status);
-        var data = await resp.json();
-        loadDataset(data);
-        showToast(toPersianDigits(data.articles.length) + " مقاله با موفقیت استخراج شد.");
+        var resp = await fetch(proxyUrl);
+        if (!resp.ok) throw new Error("Proxy error " + resp.status);
+        var json = await resp.json();
+        var htmlText = json.contents;
+        if (!htmlText) throw new Error("Empty response from proxy");
+        var parsed = parseCivilicaHtml(htmlText, url);
+        if (parsed.articles.length === 0) {
+          showToast("هیچ مقاله‌ای یافت نشد. صفحه را با Ctrl+S ذخیره کنید و HTML آن را در تب ۲ بچسبانید.");
+        } else {
+          loadDataset(parsed);
+          showToast(toPersianDigits(parsed.articles.length) + " مقاله با موفقیت استخراج شد.");
+        }
       } catch (err) {
-        showToast("سرور در دسترس نیست؛ می‌توانید کد HTML صفحه را در تب دوم بچسبانید.");
+        // Fallback message — direct browser CORS usually blocked on civilica
+        showToast("دسترسی مستقیم مسدود شد. صفحه را در مرورگر باز کنید، Ctrl+S بزنید، سپس فایل HTML را در تب ۲ دراپ کنید.");
       } finally {
         statusEl.style.display = "none";
       }
