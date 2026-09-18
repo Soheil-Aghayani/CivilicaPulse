@@ -228,8 +228,8 @@
     var titleTag = doc.querySelector("title");
     var researcherName =
       h1 ? h1.textContent.trim() :
-      titleTag ? titleTag.textContent.split("-")[0].trim() :
-      "پژوهشگر سیویلیکا";
+        titleTag ? titleTag.textContent.split("-")[0].trim() :
+          "پژوهشگر سیویلیکا";
 
     var articles = [];
     var seenIds = new Set();
@@ -559,46 +559,46 @@
 
       return (
         '<article class="article-card' + (isSelected ? " is-selected" : "") + '" data-id="' + article.id + '">' +
-          '<input type="checkbox" class="article-check" data-id="' + article.id + '"' + (isSelected ? " checked" : "") + ' aria-label="انتخاب">' +
-          '<div class="article-content">' +
-            '<h3 class="article-title">' + escapeHtml(article.title) + '</h3>' +
-            '<div class="article-authors-row">' +
-              '<svg class="icon" aria-hidden="true" style="color:var(--text-subtle);"><use href="#icon-user"></use></svg>' +
-              '<span class="article-authors-text">نویسندگان: ' + authorsLineHtml + '</span>' +
-              '<button class="btn-subtle btn-trigger-edit-author" data-id="' + article.id + '" type="button" title="ویرایش اسامی نویسندگان این مقاله">' +
-                '<svg class="icon" aria-hidden="true"><use href="#icon-edit"></use></svg>' +
-                '<span>ویرایش</span>' +
-              '</button>' +
-            '</div>' +
-            '<div class="inline-author-edit" id="author-edit-box-' + article.id + '" style="display:none;">' +
-              '<input type="text" class="edit-author-input" data-id="' + article.id + '" value="' + escapeHtml(authorsRaw) + '" placeholder="اسامی نویسندگان (جداشده با ویرگول)...">' +
-              '<button class="btn-primary btn-save-author" data-id="' + article.id + '" type="button" style="padding:4px 10px; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px;">' +
-                '<svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>' +
-                '<span>تأیید</span>' +
-              '</button>' +
-              '<button class="btn-secondary btn-cancel-author" data-id="' + article.id + '" type="button" style="padding:4px 10px; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px;">' +
-                '<svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>' +
-                '<span>انصراف</span>' +
-              '</button>' +
-            '</div>' +
-            '<div class="article-meta">' +
-              '<span class="meta-tag">' + escapeHtml(article.type) + '</span>' +
-              '<span>سال <b>' + toPersianDigits(article.year) + '</b></span>' +
-              '<span>' + escapeHtml(article.venue) + '</span>' +
-            '</div>' +
-            '<div class="article-citation">' + citationHtml + '</div>' +
-            '<div class="article-actions">' +
-              '<button class="btn-subtle btn-copy-one" data-citation="' + escapeHtml(citationPlain) + '" type="button">' +
-                '<svg class="icon" aria-hidden="true"><use href="#icon-copy"></use></svg>' +
-                '<span>کپی استناد</span>' +
-              '</button>' +
-              '<a class="btn-subtle" href="' + escapeHtml(article.url) + '" target="_blank" rel="noreferrer">' +
-                '<svg class="icon" aria-hidden="true"><use href="#icon-external"></use></svg>' +
-                '<span>سیویلیکا</span>' +
-              '</a>' +
-            '</div>' +
-          '</div>' +
-          '<span class="article-index">' + toPersianDigits(globalIndex) + '</span>' +
+        '<input type="checkbox" class="article-check" data-id="' + article.id + '"' + (isSelected ? " checked" : "") + ' aria-label="انتخاب">' +
+        '<div class="article-content">' +
+        '<h3 class="article-title">' + escapeHtml(article.title) + '</h3>' +
+        '<div class="article-authors-row">' +
+        '<svg class="icon" aria-hidden="true" style="color:var(--text-subtle);"><use href="#icon-user"></use></svg>' +
+        '<span class="article-authors-text">نویسندگان: ' + authorsLineHtml + '</span>' +
+        '<button class="btn-subtle btn-trigger-edit-author" data-id="' + article.id + '" type="button" title="ویرایش اسامی نویسندگان این مقاله">' +
+        '<svg class="icon" aria-hidden="true"><use href="#icon-edit"></use></svg>' +
+        '<span>ویرایش</span>' +
+        '</button>' +
+        '</div>' +
+        '<div class="inline-author-edit" id="author-edit-box-' + article.id + '" style="display:none;">' +
+        '<input type="text" class="edit-author-input" data-id="' + article.id + '" value="' + escapeHtml(authorsRaw) + '" placeholder="اسامی نویسندگان (جداشده با ویرگول)...">' +
+        '<button class="btn-primary btn-save-author" data-id="' + article.id + '" type="button" style="padding:4px 10px; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px;">' +
+        '<svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>' +
+        '<span>تأیید</span>' +
+        '</button>' +
+        '<button class="btn-secondary btn-cancel-author" data-id="' + article.id + '" type="button" style="padding:4px 10px; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px;">' +
+        '<svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>' +
+        '<span>انصراف</span>' +
+        '</button>' +
+        '</div>' +
+        '<div class="article-meta">' +
+        '<span class="meta-tag">' + escapeHtml(article.type) + '</span>' +
+        '<span>سال <b>' + toPersianDigits(article.year) + '</b></span>' +
+        '<span>' + escapeHtml(article.venue) + '</span>' +
+        '</div>' +
+        '<div class="article-citation">' + citationHtml + '</div>' +
+        '<div class="article-actions">' +
+        '<button class="btn-subtle btn-copy-one" data-citation="' + escapeHtml(citationPlain) + '" type="button">' +
+        '<svg class="icon" aria-hidden="true"><use href="#icon-copy"></use></svg>' +
+        '<span>کپی استناد</span>' +
+        '</button>' +
+        '<a class="btn-subtle" href="' + escapeHtml(article.url) + '" target="_blank" rel="noreferrer">' +
+        '<svg class="icon" aria-hidden="true"><use href="#icon-external"></use></svg>' +
+        '<span>سیویلیکا</span>' +
+        '</a>' +
+        '</div>' +
+        '</div>' +
+        '<span class="article-index">' + toPersianDigits(globalIndex) + '</span>' +
         '</article>'
       );
     }).join("");
@@ -620,14 +620,14 @@
 
       return (
         '<tr' + (isSelected ? ' style="background:var(--primary-subtle);"' : "") + '>' +
-          '<td><input type="checkbox" class="table-row-check" data-id="' + article.id + '"' + (isSelected ? " checked" : "") + '></td>' +
-          '<td style="font-weight:700;">' + rowNum + '</td>' +
-          '<td style="font-weight:600; min-width:240px;">' + escapeHtml(article.title) + '</td>' +
-          '<td style="min-width:180px; font-size:0.85rem;">' + authors + '</td>' +
-          '<td><span class="meta-tag">' + escapeHtml(article.type) + '</span></td>' +
-          '<td>' + toPersianDigits(article.year) + '</td>' +
-          '<td style="color:var(--text-muted); font-size:0.825rem;">' + escapeHtml(article.venue) + '</td>' +
-          '<td><a class="nav-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noreferrer">مشاهده</a></td>' +
+        '<td><input type="checkbox" class="table-row-check" data-id="' + article.id + '"' + (isSelected ? " checked" : "") + '></td>' +
+        '<td style="font-weight:700;">' + rowNum + '</td>' +
+        '<td style="font-weight:600; min-width:240px;">' + escapeHtml(article.title) + '</td>' +
+        '<td style="min-width:180px; font-size:0.85rem;">' + authors + '</td>' +
+        '<td><span class="meta-tag">' + escapeHtml(article.type) + '</span></td>' +
+        '<td>' + toPersianDigits(article.year) + '</td>' +
+        '<td style="color:var(--text-muted); font-size:0.825rem;">' + escapeHtml(article.venue) + '</td>' +
+        '<td><a class="nav-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noreferrer">مشاهده</a></td>' +
         '</tr>'
       );
     }).join("");
@@ -650,11 +650,11 @@
       var pct = Math.round((count / maxYearCount) * 100);
       return (
         '<div class="bar-chart-row">' +
-          '<span class="bar-label">' + toPersianDigits(y) + '</span>' +
-          '<div class="bar-track">' +
-            '<div class="bar-fill" style="width:' + pct + '%;"></div>' +
-          '</div>' +
-          '<span class="bar-value">' + toPersianDigits(count) + '</span>' +
+        '<span class="bar-label">' + toPersianDigits(y) + '</span>' +
+        '<div class="bar-track">' +
+        '<div class="bar-fill" style="width:' + pct + '%;"></div>' +
+        '</div>' +
+        '<span class="bar-value">' + toPersianDigits(count) + '</span>' +
         '</div>'
       );
     }).join("");
@@ -672,11 +672,11 @@
       var pct = Math.round((count / maxTypeCount) * 100);
       return (
         '<div class="bar-chart-row">' +
-          '<span class="bar-label" style="width:110px;">' + escapeHtml(t) + '</span>' +
-          '<div class="bar-track">' +
-            '<div class="bar-fill" style="width:' + pct + '%;"></div>' +
-          '</div>' +
-          '<span class="bar-value">' + toPersianDigits(count) + '</span>' +
+        '<span class="bar-label" style="width:110px;">' + escapeHtml(t) + '</span>' +
+        '<div class="bar-track">' +
+        '<div class="bar-fill" style="width:' + pct + '%;"></div>' +
+        '</div>' +
+        '<span class="bar-value">' + toPersianDigits(count) + '</span>' +
         '</div>'
       );
     }).join("");
@@ -703,11 +703,11 @@
       var pct = Math.round((count / maxAuthorCount) * 100);
       return (
         '<div class="bar-chart-row" style="cursor:pointer;" title="کلیک برای فیلتر این نویسنده" data-filter-author="' + escapeHtml(authorName) + '">' +
-          '<span class="bar-label" style="width:170px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(authorName) + '</span>' +
-          '<div class="bar-track">' +
-            '<div class="bar-fill" style="width:' + pct + '%; background:linear-gradient(135deg, #10b981 0%, #0ea5e9 100%);"></div>' +
-          '</div>' +
-          '<span class="bar-value">' + toPersianDigits(count) + '</span>' +
+        '<span class="bar-label" style="width:170px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(authorName) + '</span>' +
+        '<div class="bar-track">' +
+        '<div class="bar-fill" style="width:' + pct + '%; background:linear-gradient(135deg, #10b981 0%, #0ea5e9 100%);"></div>' +
+        '</div>' +
+        '<span class="bar-value">' + toPersianDigits(count) + '</span>' +
         '</div>'
       );
     }).join("");
@@ -730,11 +730,11 @@
       var pct = Math.round((count / maxVenueCount) * 100);
       return (
         '<div class="bar-chart-row">' +
-          '<span class="bar-label" style="width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="' + escapeHtml(v) + '">' + escapeHtml(v) + '</span>' +
-          '<div class="bar-track">' +
-            '<div class="bar-fill" style="width:' + pct + '%;"></div>' +
-          '</div>' +
-          '<span class="bar-value">' + toPersianDigits(count) + '</span>' +
+        '<span class="bar-label" style="width:240px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="' + escapeHtml(v) + '">' + escapeHtml(v) + '</span>' +
+        '<div class="bar-track">' +
+        '<div class="bar-fill" style="width:' + pct + '%;"></div>' +
+        '</div>' +
+        '<span class="bar-value">' + toPersianDigits(count) + '</span>' +
         '</div>'
       );
     }).join("");
@@ -1225,9 +1225,9 @@
       if (!url) return showToast("لطفاً آدرس صفحه پژوهشگر را وارد کنید.");
 
       // Normalize civilica URL (support Persian digits in URL too, e.g. /p/۱۷۶۲۲۵/)
-      url = url.replace(/[۰-۹٠-٩]/g, function(d) {
+      url = url.replace(/[۰-۹٠-٩]/g, function (d) {
         var persian = "۰۱۲۳۴۵۶۷۸۹";
-        var arabic  = "٠١٢٣٤٥٦٧٨٩";
+        var arabic = "٠١٢٣٤٥٦٧٨٩";
         var pi = persian.indexOf(d);
         var ai = arabic.indexOf(d);
         return pi >= 0 ? String(pi) : ai >= 0 ? String(ai) : d;
@@ -1262,4 +1262,12 @@
     checkBookmarkletImport();
   });
 
+})();
+
+
+(() => {
+  const meta = document.createElement('meta');
+  meta.name = 'theme-color';
+  meta.content = document.documentElement.getAttribute('data-theme') === 'dark' ? '#090d16' : '#1e3a5f';
+  document.head.appendChild(meta);
 })();

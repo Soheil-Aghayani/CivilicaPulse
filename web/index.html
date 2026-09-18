@@ -4,7 +4,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#1e3a5f">
   <meta name="description" content="سامانه پژوهشی استخراج، گزینش و ساخت فایل ورد مقالات پژوهشگران سیویلیکا">
   <title>استخراج مقالات سیویلیکا و ساخت استناد ورد</title>
   <link rel="icon" href="assets/civilicapulse-site-icon.webp?v=1" type="image/webp">
@@ -130,14 +129,14 @@
       </a>
 
       <div class="nav-actions">
-        <a class="nav-link" href="https://soheil-aghayani.github.io/ScholarPulse/" target="_blank" rel="noreferrer"
-          aria-label="ScholarPulse" title="سامانهٔ مکمل ScholarPulse">
+        <a class="nav-link" href="https://soheil-aghayani.github.io/ScholarPulse/" target="_blank"
+          rel="noopener noreferrer" aria-label="ScholarPulse" title="سامانهٔ مکمل ScholarPulse">
           <svg class="icon icon-solid nav-brand-icon" aria-hidden="true">
             <use href="#icon-education-filled"></use>
           </svg>
           <span>ScholarPulse</span>
         </a>
-        <a class="nav-link" href="https://soheil-aghayani.github.io/" target="_blank" rel="noreferrer"
+        <a class="nav-link" href="https://soheil-aghayani.github.io/" target="_blank" rel="noopener noreferrer"
           aria-label="ریپوی اصلی گیت‌هاب سهیل آقایانی" title="ریپوی اصلی GitHub سهیل آقایانی">
           <svg class="icon icon-solid nav-brand-icon" aria-hidden="true">
             <use href="#icon-github-solid"></use>
@@ -224,7 +223,7 @@
         </div>
         <textarea id="raw-html" class="textarea-paste"
           placeholder="کد منبع صفحه (View Page Source) را اینجا بچسبانید..."></textarea>
-        <div style="margin-top: 10px; display: flex; gap: 8px;">
+        <div class="html-actions">
           <button class="btn-primary" id="parse-html-btn" type="button">
             <svg class="icon" aria-hidden="true">
               <use href="#icon-check"></use>
@@ -259,12 +258,6 @@
         </div>
       </div>
 
-      <!-- Status / Spinner -->
-      <div class="status-bar" id="scrape-status" role="status" aria-live="polite" aria-label="در حال بارگذاری" hidden>
-        <svg class="icon loading-icon" aria-hidden="true">
-          <use href="#icon-loader"></use>
-        </svg>
-      </div>
     </section>
 
     <!-- Researcher Details & 5 KPI Cards -->
@@ -360,7 +353,7 @@
           </button>
         </div>
 
-        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <div class="control-search-group">
           <!-- Author Isolation Dropdown Filter -->
           <div class="author-select-wrap" title="جداسازی و فیلتر مقالات بر اساس نویسنده و همکار">
             <svg class="icon" aria-hidden="true">
@@ -393,7 +386,7 @@
         </div>
 
         <div class="pills-group" id="style-pills" role="group" aria-label="سبک استناددهی">
-          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted);">سبک استناد:</span>
+          <span class="citation-style-label">سبک استناد:</span>
           <button class="pill-btn active" type="button" data-style="apa7">APA 7th</button>
           <button class="pill-btn" type="button" data-style="vancouver">Vancouver</button>
           <button class="pill-btn" type="button" data-style="ieee">IEEE</button>
@@ -465,8 +458,8 @@
       <table class="papers-table">
         <thead>
           <tr>
-            <th style="width: 40px;"><input type="checkbox" id="table-select-all" aria-label="انتخاب همه"></th>
-            <th style="width: 50px;">ردیف</th>
+            <th class="col-select"><input type="checkbox" id="table-select-all" aria-label="انتخاب همه"></th>
+            <th class="col-idx">ردیف</th>
             <th>عنوان مقاله</th>
             <th>نویسندگان</th>
             <th>نوع انتشار</th>
@@ -554,8 +547,7 @@
   <footer class="site-footer">
     <div class="shell footer-inner">
       <span>سیویلیکا+</span>
-      <span>طراحی و توسعه توسط <a href="https://soheil-aghayani.github.io/" target="_blank" rel="noreferrer">سهیل
-          آقایانی</a></span>
+      <a href="https://soheil-aghayani.github.io/" target="_blank" rel="noopener noreferrer">سهیل آقایانی</a>
     </div>
   </footer>
 
