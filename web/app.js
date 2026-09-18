@@ -68,11 +68,18 @@
     return (error && error.message) || fallbackMessage;
   }
 
-  function setScrapeStatus(title, description) {
-    var titleEl = document.getElementById("status-title");
-    var descEl = document.getElementById("status-desc");
-    if (titleEl) titleEl.textContent = title;
-    if (descEl) descEl.textContent = description;
+  function setLoadingState(isLoading) {
+    var statusEl = document.getElementById("scrape-status");
+    var extractButton = document.getElementById("extract-button");
+
+    if (statusEl) statusEl.hidden = !isLoading;
+    if (!extractButton) return;
+
+    extractButton.disabled = isLoading;
+    extractButton.setAttribute("aria-busy", isLoading ? "true" : "false");
+    extractButton.innerHTML = isLoading
+      ? '<svg class="icon loading-icon" aria-hidden="true"><use href="#icon-loader"></use></svg>'
+      : '<svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>';
   }
 
   async function requestProfileFromBackend(profileUrl) {
@@ -107,12 +114,11 @@
     };
   }
 
-  async function requestProfile(profileUrl, onFallback) {
+  async function requestProfile(profileUrl) {
     try {
       return await requestProfileFromBackend(profileUrl);
     } catch (error) {
       if (!shouldUseProfileFallback(error)) throw error;
-      if (onFallback) onFallback();
       return requestProfileFromFallback(profileUrl);
     }
   }
@@ -1194,9 +1200,28 @@
   function initForm() {
     var form = document.getElementById("profile-form");
     if (!form) return;
+
+    var urlInput = document.getElementById("profile-url");
+    var clearButton = document.getElementById("clear-profile-url");
+    function syncClearButton() {
+      if (clearButton) clearButton.hidden = !urlInput.value;
+    }
+
+    if (urlInput) {
+      urlInput.addEventListener("input", syncClearButton);
+      syncClearButton();
+    }
+    if (clearButton) {
+      clearButton.addEventListener("click", function () {
+        urlInput.value = "";
+        syncClearButton();
+        urlInput.focus();
+      });
+    }
+
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
-      var url = document.getElementById("profile-url").value.trim();
+      var url = urlInput.value.trim();
       if (!url) return showToast("لطفاً آدرس صفحه پژوهشگر را وارد کنید.");
 
       // Normalize civilica URL (support Persian digits in URL too, e.g. /p/۱۷۶۲۲۵/)
@@ -1209,20 +1234,16 @@
       });
       if (!/^https?:\/\//i.test(url)) url = "https://civilica.com/p/" + url.replace(/\D/g, "") + "/";
 
-      var statusEl = document.getElementById("scrape-status");
-      setScrapeStatus("در حال دریافت مقالات...", "لطفاً چند لحظه صبر کنید.");
-      statusEl.style.display = "flex";
+      setLoadingState(true);
 
       try {
-        var payload = await requestProfile(url, function () {
-          setScrapeStatus("در حال استفاده از مسیر جایگزین...", "اتصال اصلی در دسترس نبود؛ صفحهٔ عمومی سیویلیکا در حال پردازش است.");
-        });
+        var payload = await requestProfile(url);
         if (!loadDataset(payload)) throw new Error("مقاله‌ای در این پروفایل پیدا نشد.");
         showToast(toPersianDigits(payload.count || payload.articles.length) + " مقاله آماده شد.");
       } catch (err) {
         showToast(userFacingError(err, "اتصال برقرار نشد؛ حالت HTML را امتحان کنید."));
       } finally {
-        statusEl.style.display = "none";
+        setLoadingState(false);
       }
     });
   }
