@@ -992,7 +992,8 @@
     document.getElementById("btn-export-word").addEventListener("click", generateWordDocument);
     document.getElementById("btn-export-bib").addEventListener("click", exportBibTeX);
     document.getElementById("btn-export-csv").addEventListener("click", exportCsv);
-    document.getElementById("btn-export-json").addEventListener("click", exportJson);
+    var exportJsonButton = document.getElementById("btn-export-json");
+    if (exportJsonButton) exportJsonButton.addEventListener("click", exportJson);
     document.getElementById("btn-print").addEventListener("click", function () { window.print(); });
 
     // Copy All
@@ -1246,6 +1247,18 @@
         setLoadingState(false);
       }
     });
+
+    // Shared profile links can start an extraction immediately.
+    var queryProfileUrl = new URLSearchParams(window.location.search).get("profile-url");
+    if (queryProfileUrl && queryProfileUrl.trim()) {
+      urlInput.value = queryProfileUrl.trim();
+      syncClearButton();
+      if (typeof form.requestSubmit === "function") {
+        window.setTimeout(function () {
+          form.requestSubmit();
+        }, 0);
+      }
+    }
   }
 
   // Boot Application
