@@ -819,6 +819,128 @@ textarea:focus-visible {
   text-decoration: underline;
 }
 
+/* Target Author & Isolation Controls */
+.author-target-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 8px 14px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.author-target-label {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.author-target-input {
+  padding: 4px 10px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 170px;
+  outline: none;
+}
+
+.author-target-input:focus {
+  border-color: var(--primary-light);
+}
+
+.author-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.author-checkbox-label input {
+  accent-color: var(--primary-light);
+  width: 16px;
+  height: 16px;
+}
+
+/* Author filter dropdown in control deck */
+.author-select-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-base);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 4px 10px;
+}
+
+.author-select-wrap select {
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Article card authors line */
+.article-authors-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.article-authors-text {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.author-highlight {
+  color: var(--primary-text);
+  background: var(--primary-subtle);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  border-bottom: 2px solid var(--primary-light);
+}
+
+.inline-author-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  margin-bottom: 8px;
+  width: 100%;
+}
+
+.inline-author-edit input {
+  flex: 1;
+  padding: 5px 10px;
+  font-size: 0.85rem;
+  border: 1px solid var(--primary-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-main);
+  outline: none;
+}
+
 /* KPI Metrics Row */
 .metrics-row {
   display: grid;

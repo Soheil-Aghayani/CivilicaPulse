@@ -1,14 +1,82 @@
 /**
  * CivilicaPulse — Pure Client-Side & Live Academic Researcher Toolkit
- * Built for Persian researchers with authentic typography, multi-view analytics,
- * client-side Word exports, and zero-server GitHub Pages capability.
+ * Features:
+ * - Multi-author citation generation & custom author management
+ * - Target author isolation (تفکیک پژوهشگر هدف) and bolding in Word & citations
+ * - Co-author filtering & collaborator analytics
+ * - Authentic Persian typography (IRANYekanX) & Solar icon consistency
+ * - Client-side Word (.docx/.doc), BibTeX, CSV, JSON, Print
  */
 
 (function () {
   "use strict";
 
-  // Preloaded Demo Datasets for 100% Live Initial Experience
+  // Preloaded Datasets with Comprehensive Multi-Author Details
   var DEMO_PROFILES = {
+    samiee: {
+      profile: {
+        id: "28419",
+        name: "دکتر رودابه سامعی",
+        affil: "عضو هیئت علمی و استاد مهندسی محیط زیست، دانشگاه تهران",
+        url: "https://civilica.com/p/28419/"
+      },
+      articles: [
+        {
+          id: "401",
+          title: "ارزیابی چندمعیاره و تحلیل چرخه حیات (LCA) فرآیندهای بازیافت و تبدیل پسماند به انرژی",
+          venue: "مجله مهندسی محیط زیست",
+          year: "1402",
+          type: "مقاله ژورنالی",
+          authors: "دکتر رودابه سامعی، سهیل آقایانی، دکتر ناصر مهردادی",
+          url: "https://civilica.com/doc/401/"
+        },
+        {
+          id: "402",
+          title: "مدل‌سازی انتشار گازهای گلخانه‌ای در تصفیه‌خانه‌های فاضلاب شهری با روش سناریوسازی",
+          venue: "بیستمین همایش ملی بهداشت محیط و مدیریت پسماند",
+          year: "1402",
+          type: "مقاله کنفرانسی",
+          authors: "دکتر رودابه سامعی، مهندس علی رضایی",
+          url: "https://civilica.com/doc/402/"
+        },
+        {
+          id: "403",
+          title: "بهینه‌سازی سنتز بیودیزل از روغن‌های پسماند با استفاده از نانوکاتالیزورهای مغناطیسی سبز",
+          venue: "نشریه تخصصی انرژی‌های نو و محیط زیست",
+          year: "1401",
+          type: "مقاله ژورنالی",
+          authors: "سهیل آقایانی، دکتر رودابه سامعی",
+          url: "https://civilica.com/doc/403/"
+        },
+        {
+          id: "404",
+          title: "بررسی پایداری و اثرات تجمعی آلاینده‌های نوظهور در تالاب‌های ساحلی جنوب ایران",
+          venue: "ششمین همایش ملی محیط زیست دریا و شیلات",
+          year: "1401",
+          type: "مقاله کنفرانسی",
+          authors: "دکتر رودابه سامعی، دکتر احمدرضا کرباسی، سهیل آقایانی",
+          url: "https://civilica.com/doc/404/"
+        },
+        {
+          id: "405",
+          title: "طرح پژوهشی سنجش ردپای کربن و تدوین استراتژی‌های اقتصاد چرخشی در صنایع پتروشیمی",
+          venue: "مرکز مطالعات انرژی و محیط زیست دانشگاه تهران",
+          year: "1400",
+          type: "طرح پژوهشی",
+          authors: "دکتر رودابه سامعی، دکتر ناصر مهردادی",
+          url: "https://civilica.com/doc/405/"
+        },
+        {
+          id: "406",
+          title: "سنتز نانوکامپوزیت‌های کربنی جاذب جهت حذف ترکیبات دارویی و آنتی‌بیوتیک‌ها از پساب",
+          venue: "فصلنامه انسان و محیط زیست",
+          year: "1399",
+          type: "مقاله ژورنالی",
+          authors: "دکتر رودابه سامعی، مهندس مریم حسینی",
+          url: "https://civilica.com/doc/406/"
+        }
+      ]
+    },
     mehrdadi: {
       profile: {
         id: "176225",
@@ -17,18 +85,114 @@
         url: "https://civilica.com/p/176225/"
       },
       articles: [
-        { id: "101", title: "ارزیابی شاخص‌های کیفی آب رودخانه‌ها با استفاده از شبکه‌های عصبی مصنوعی", venue: "مجله مهندسی محیط زیست", year: "1402", type: "مقاله ژورنالی", url: "https://civilica.com/doc/101/" },
-        { id: "102", title: "بررسی و مدل‌سازی انتقال آلاینده‌های فلزات سنگین در منابع آب‌های سطحی", venue: "بیستمین همایش ملی محیط زیست و بهداشت محیط", year: "1402", type: "مقاله کنفرانسی", url: "https://civilica.com/doc/102/" },
-        { id: "103", title: "کاربرد فناوری بیوفیلتراسیون در تصفیه بیولوژیکی پساب‌های صنعتی پیچیده", venue: "نشریه آب و فاضلاب", year: "1401", type: "مقاله ژورنالی", url: "https://civilica.com/doc/101/" },
-        { id: "104", title: "بهینه‌سازی فرآیند لجن فعال در راکتورهای ناپیوسته متوالی (SBR)", venue: "ششمین همایش ملی مدیریت پسماند و توسعه پایدار", year: "1401", type: "مقاله کنفرانسی", url: "https://civilica.com/doc/104/" },
-        { id: "105", title: "ارزیابی چرخه حیات (LCA) سامانه‌های یکپارچه مدیریت پسماند شهری در ایران", venue: "فصلنامه انسان و محیط زیست", year: "1400", type: "مقاله ژورنالی", url: "https://civilica.com/doc/105/" },
-        { id: "106", title: "بررسی کارایی فتوکاتالیست نانوذرات اکسید تیتانیوم در تخریب رنگزاهای نساجی", venue: "هشتمین کنفرانس بین‌المللی مدیریت محیط زیست", year: "1399", type: "مقاله کنفرانسی", url: "https://civilica.com/doc/106/" },
-        { id: "107", title: "طرح پژوهشی مطالعه جامع و پایش برخط کیفیت هوای کلان‌شهرهای صنعتی", venue: "سازمان حفاظت محیط زیست و دانشگاه تهران", year: "1399", type: "طرح پژوهشی", url: "https://civilica.com/doc/107/" },
-        { id: "108", title: "تحلیل پایداری اکوسیستم‌های تالابی با استفاده از رویکرد دینامیک سیستم‌ها", venue: "مجله علوم و تکنولوژی محیط زیست", year: "1398", type: "مقاله ژورنالی", url: "https://civilica.com/doc/108/" },
-        { id: "109", title: "شبیه‌سازی عددی نشت هیدروکربن‌های نفتی در محیط‌های متخلخل آبخوان", venue: "هفتمین کنگره ملی مهندسی عمران", year: "1398", type: "مقاله کنفرانسی", url: "https://civilica.com/doc/109/" },
-        { id: "110", title: "ارزیابی اثرات زیست‌محیطی طرح‌های توسعه صنعتی در مناطق ساحلی جنوب", venue: "نشریه تخصصی اکولوژی صنعتی و پایش زیستی", year: "1397", type: "مقاله ژورنالی", url: "https://civilica.com/doc/110/" },
-        { id: "111", title: "مقایسه روش‌های اکسیداسیون پیشرفته (AOPs) در تصفیه پساب دارویی", venue: "پنجمین همایش علوم و مهندسی محیط زیست", year: "1397", type: "مقاله کنفرانسی", url: "https://civilica.com/doc/111/" },
-        { id: "112", title: "تولید بیوگاز از هضم بی‌هوازی پسماندهای جامد ارگانیک با روش گرمادوست", venue: "مجله تحقیقات منابع طبیعی ایران", year: "1396", type: "مقاله ژورنالی", url: "https://civilica.com/doc/112/" }
+        {
+          id: "101",
+          title: "ارزیابی شاخص‌های کیفی آب رودخانه‌ها با استفاده از شبکه‌های عصبی مصنوعی",
+          venue: "مجله مهندسی محیط زیست",
+          year: "1402",
+          type: "مقاله ژورنالی",
+          authors: "پروفسور ناصر مهردادی، دکتر احمدرضا کرباسی، مهندس پویان فراهانی",
+          url: "https://civilica.com/doc/101/"
+        },
+        {
+          id: "102",
+          title: "بررسی و مدل‌سازی انتقال آلاینده‌های فلزات سنگین در منابع آب‌های سطحی",
+          venue: "بیستمین همایش ملی محیط زیست و بهداشت محیط",
+          year: "1402",
+          type: "مقاله کنفرانسی",
+          authors: "پروفسور ناصر مهردادی، مهندس مریم حسینی",
+          url: "https://civilica.com/doc/102/"
+        },
+        {
+          id: "103",
+          title: "کاربرد فناوری بیوفیلتراسیون در تصفیه بیولوژیکی پساب‌های صنعتی پیچیده",
+          venue: "نشریه آب و فاضلاب",
+          year: "1401",
+          type: "مقاله ژورنالی",
+          authors: "پروفسور ناصر مهردادی، دکتر رودابه سامعی",
+          url: "https://civilica.com/doc/101/"
+        },
+        {
+          id: "104",
+          title: "بهینه‌سازی فرآیند لجن فعال در راکتورهای ناپیوسته متوالی (SBR)",
+          venue: "ششمین همایش ملی مدیریت پسماند و توسعه پایدار",
+          year: "1401",
+          type: "مقاله کنفرانسی",
+          authors: "پروفسور ناصر مهردادی، مهندس رضا رضایی",
+          url: "https://civilica.com/doc/104/"
+        },
+        {
+          id: "105",
+          title: "ارزیابی چرخه حیات (LCA) سامانه‌های یکپارچه مدیریت پسماند شهری در ایران",
+          venue: "فصلنامه انسان و محیط زیست",
+          year: "1400",
+          type: "مقاله ژورنالی",
+          authors: "پروفسور ناصر مهردادی، دکتر رودابه سامعی، سهیل آقایانی",
+          url: "https://civilica.com/doc/105/"
+        },
+        {
+          id: "106",
+          title: "بررسی کارایی فتوکاتالیست نانوذرات اکسید تیتانیوم در تخریب رنگزاهای نساجی",
+          venue: "هشتمین کنفرانس بین‌المللی مدیریت محیط زیست",
+          year: "1399",
+          type: "مقاله کنفرانسی",
+          authors: "پروفسور ناصر مهردادی، مهندس علی نوری",
+          url: "https://civilica.com/doc/106/"
+        },
+        {
+          id: "107",
+          title: "طرح پژوهشی مطالعه جامع و پایش برخط کیفیت هوای کلان‌شهرهای صنعتی",
+          venue: "سازمان حفاظت محیط زیست و دانشگاه تهران",
+          year: "1399",
+          type: "طرح پژوهشی",
+          authors: "پروفسور ناصر مهردادی، دکتر رودابه سامعی",
+          url: "https://civilica.com/doc/107/"
+        },
+        {
+          id: "108",
+          title: "تحلیل پایداری اکوسیستم‌های تالابی با استفاده از رویکرد دینامیک سیستم‌ها",
+          venue: "مجله علوم و تکنولوژی محیط زیست",
+          year: "1398",
+          type: "مقاله ژورنالی",
+          authors: "پروفسور ناصر مهردادی، دکتر احمدرضا کرباسی",
+          url: "https://civilica.com/doc/108/"
+        },
+        {
+          id: "109",
+          title: "شبیه‌سازی عددی نشت هیدروکربن‌های نفتی در محیط‌های متخلخل آبخوان",
+          venue: "هفتمین کنگره ملی مهندسی عمران",
+          year: "1398",
+          type: "مقاله کنفرانسی",
+          authors: "پروفسور ناصر مهردادی، مهندس کیوان صبوری",
+          url: "https://civilica.com/doc/109/"
+        },
+        {
+          id: "110",
+          title: "ارزیابی اثرات زیست‌محیطی طرح‌های توسعه صنعتی در مناطق ساحلی جنوب",
+          venue: "نشریه تخصصی اکولوژی صنعتی و پایش زیستی",
+          year: "1397",
+          type: "مقاله ژورنالی",
+          authors: "پروفسور ناصر مهردادی، دکتر احمدرضا کرباسی",
+          url: "https://civilica.com/doc/110/"
+        },
+        {
+          id: "111",
+          title: "مقایسه روش‌های اکسیداسیون پیشرفته (AOPs) در تصفیه پساب دارویی",
+          venue: "پنجمین همایش علوم و مهندسی محیط زیست",
+          year: "1397",
+          type: "مقاله کنفرانسی",
+          authors: "پروفسور ناصر مهردادی، مهندس سارا امینی",
+          url: "https://civilica.com/doc/111/"
+        },
+        {
+          id: "112",
+          title: "تولید بیوگاز از هضم بی‌هوازی پسماندهای جامد ارگانیک با روش گرمادوست",
+          venue: "مجله تحقیقات منابع طبیعی ایران",
+          year: "1396",
+          type: "مقاله ژورنالی",
+          authors: "پروفسور ناصر مهردادی، مهندس علی رضایی",
+          url: "https://civilica.com/doc/112/"
+        }
       ]
     },
     karbassi: {
@@ -39,12 +203,60 @@
         url: "https://civilica.com/p/45210/"
       },
       articles: [
-        { id: "201", title: "بررسی رفتار ژئوشیمیایی و انتقال فازی فلزات سنگین در مصب رودخانه‌ها", venue: "مجله محیط زیست طبیعی", year: "1402", type: "مقاله ژورنالی", url: "https://civilica.com/doc/201/" },
-        { id: "202", title: "پایش آلودگی‌های رسوبات خلیج فارس با استفاده از شاخص زمین‌انباشتگی", venue: "همایش علوم و مهندسی محیط زیست دریا", year: "1401", type: "مقاله کنفرانسی", url: "https://civilica.com/doc/202/" },
-        { id: "203", title: "مدل‌سازی شوری‌زدایی و لخته‌سازی کلوئیدهای معدنی در آبراهه‌های ساحلی", venue: "نشریه علوم و فنون اقیانوس‌شناسی", year: "1400", type: "مقاله ژورنالی", url: "https://civilica.com/doc/203/" },
-        { id: "204", title: "ارزیابی قابلیت بازیافت و خطرات زیست‌محیطی پسماندهای الکترونیکی در ایران", venue: "کنگره ملی مدیریت پسماند", year: "1399", type: "مقاله کنفرانسی", url: "https://civilica.com/doc/204/" },
-        { id: "205", title: "طرح پژوهشی تدوین استانداردهای ملی سنجش پساب‌های صنعتی دریایی", venue: "پژوهشکده علوم محیطی", year: "1398", type: "طرح پژوهشی", url: "https://civilica.com/doc/205/" },
-        { id: "206", title: "سنجش غلظت کادمیم و سرب در بافت‌های زیستی ماهیان تالاب انزلی", venue: "فصلنامه آبزی‌پروری و مدیریت منابع آبی", year: "1397", type: "مقاله ژورنالی", url: "https://civilica.com/doc/206/" }
+        {
+          id: "201",
+          title: "بررسی رفتار ژئوشیمیایی و انتقال فازی فلزات سنگین در مصب رودخانه‌ها",
+          venue: "مجله محیط زیست طبیعی",
+          year: "1402",
+          type: "مقاله ژورنالی",
+          authors: "دکتر احمدرضا کرباسی، مهندس مریم ناصری",
+          url: "https://civilica.com/doc/201/"
+        },
+        {
+          id: "202",
+          title: "پایش آلودگی‌های رسوبات خلیج فارس با استفاده از شاخص زمین‌انباشتگی",
+          venue: "همایش علوم و مهندسی محیط زیست دریا",
+          year: "1401",
+          type: "مقاله کنفرانسی",
+          authors: "دکتر احمدرضا کرباسی، دکتر ناصر مهردادی",
+          url: "https://civilica.com/doc/202/"
+        },
+        {
+          id: "203",
+          title: "مدل‌سازی شوری‌زدایی و لخته‌سازی کلوئیدهای معدنی در آبراهه‌های ساحلی",
+          venue: "نشریه علوم و فنون اقیانوس‌شناسی",
+          year: "1400",
+          type: "مقاله ژورنالی",
+          authors: "دکتر احمدرضا کرباسی، مهندس علی احمدی",
+          url: "https://civilica.com/doc/203/"
+        },
+        {
+          id: "204",
+          title: "ارزیابی قابلیت بازیافت و خطرات زیست‌محیطی پسماندهای الکترونیکی در ایران",
+          venue: "کنگره ملی مدیریت پسماند",
+          year: "1399",
+          type: "مقاله کنفرانسی",
+          authors: "دکتر احمدرضا کرباسی، سهیل آقایانی",
+          url: "https://civilica.com/doc/204/"
+        },
+        {
+          id: "205",
+          title: "طرح پژوهشی تدوین استانداردهای ملی سنجش پساب‌های صنعتی دریایی",
+          venue: "پژوهشکده علوم محیطی دانشگاه تهران",
+          year: "1398",
+          type: "طرح پژوهشی",
+          authors: "دکتر احمدرضا کرباسی، دکتر رودابه سامعی",
+          url: "https://civilica.com/doc/205/"
+        },
+        {
+          id: "206",
+          title: "سنجش غلظت کادمیم و سرب در بافت‌های زیستی ماهیان تالاب انزلی",
+          venue: "فصلنامه آبزی‌پروری و مدیریت منابع آبی",
+          year: "1397",
+          type: "مقاله ژورنالی",
+          authors: "دکتر احمدرضا کرباسی، مهندس فرزاد بهرامی",
+          url: "https://civilica.com/doc/206/"
+        }
       ]
     },
     aghayani: {
@@ -55,11 +267,51 @@
         url: "https://civilica.com/p/384912/"
       },
       articles: [
-        { id: "301", title: "ارزیابی چرخه حیات (LCA) تولید بیودیزل از روغن‌های پسماند خوراکی با کاتالیزورهای ناهمگن", venue: "فصلنامه تخصصی انرژی‌های نو و پایداری", year: "1403", type: "مقاله ژورنالی", url: "https://civilica.com/doc/301/" },
-        { id: "302", title: "تحلیل ترمودینامیکی و اقتصادی تبدیل پسماندهای کشاورزی به بیوگاز در مقیاس صنعتی", venue: "هفتمین همایش بین‌المللی انرژی و محیط زیست", year: "1402", type: "مقاله کنفرانسی", url: "https://civilica.com/doc/302/" },
-        { id: "303", title: "مدل‌سازی سناریوهای کربن‌صفر در سیستم‌های مدیریت پسماند شهری با نرم‌افزار SimaPro", venue: "پژوهش‌های مهندسی محیط زیست", year: "1402", type: "مقاله ژورنالی", url: "https://civilica.com/doc/303/" },
-        { id: "304", title: "طرح پژوهشی سنجش ردپای کربن زنجیره تأمین انرژی پاک در ایران", venue: "مرکز مطالعات پایداری محیط زیست", year: "1401", type: "طرح پژوهشی", url: "https://civilica.com/doc/304/" },
-        { id: "305", title: "مقایسه زیست‌محیطی انواع کاتالیست‌های سبز در سنتز سوخت‌های پاک زیستی", venue: "ششمین کنفرانس شیمی سبز و فناوری نانو", year: "1401", type: "مقاله کنفرانسی", url: "https://civilica.com/doc/305/" }
+        {
+          id: "301",
+          title: "ارزیابی چرخه حیات (LCA) تولید بیودیزل از روغن‌های پسماند خوراکی با کاتالیزورهای ناهمگن",
+          venue: "فصلنامه تخصصی انرژی‌های نو و پایداری",
+          year: "1403",
+          type: "مقاله ژورنالی",
+          authors: "سهیل آقایانی، دکتر رودابه سامعی",
+          url: "https://civilica.com/doc/301/"
+        },
+        {
+          id: "302",
+          title: "تحلیل ترمودینامیکی و اقتصادی تبدیل پسماندهای کشاورزی به بیوگاز در مقیاس صنعتی",
+          venue: "هفتمین همایش بین‌المللی انرژی و محیط زیست",
+          year: "1402",
+          type: "مقاله کنفرانسی",
+          authors: "سهیل آقایانی، دکتر ناصر مهردادی",
+          url: "https://civilica.com/doc/302/"
+        },
+        {
+          id: "303",
+          title: "مدل‌سازی سناریوهای کربن‌صفر در سیستم‌های مدیریت پسماند شهری با نرم‌افزار SimaPro",
+          venue: "پژوهش‌های مهندسی محیط زیست",
+          year: "1402",
+          type: "مقاله ژورنالی",
+          authors: "سهیل آقایانی، دکتر رودابه سامعی، دکتر ناصر مهردادی",
+          url: "https://civilica.com/doc/303/"
+        },
+        {
+          id: "304",
+          title: "طرح پژوهشی سنجش ردپای کربن زنجیره تأمین انرژی پاک در ایران",
+          venue: "مرکز مطالعات پایداری محیط زیست",
+          year: "1401",
+          type: "طرح پژوهشی",
+          authors: "سهیل آقایانی، دکتر احمدرضا کرباسی",
+          url: "https://civilica.com/doc/304/"
+        },
+        {
+          id: "305",
+          title: "مقایسه زیست‌محیطی انواع کاتالیست‌های سبز در سنتز سوخت‌های پاک زیستی",
+          venue: "ششمین کنفرانس شیمی سبز و فناوری نانو",
+          year: "1401",
+          type: "مقاله کنفرانسی",
+          authors: "سهیل آقایانی، مهندس رضا رضایی",
+          url: "https://civilica.com/doc/305/"
+        }
       ]
     }
   };
@@ -70,6 +322,9 @@
     articles: [],
     selected: new Set(),
     filter: "all",
+    authorFilter: "all",
+    targetAuthor: "دکتر رودابه سامعی",
+    boldTargetAuthor: true,
     query: "",
     citationStyle: "apa7",
     view: "cards",
@@ -103,6 +358,10 @@
     return val.replace(/^(?:(?:آقای|خانم|دکتر|پروفسور|استاد|مهندس)\s+)+/gi, "");
   }
 
+  function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
   function showToast(message) {
     var toast = document.getElementById("toast");
     var msgEl = document.getElementById("toast-message");
@@ -115,9 +374,9 @@
     }, 2400);
   }
 
-  // Citation Formatter conforming to citation_formats.py
-  function formatCitation(article, index, style, authorName) {
-    var author = cleanAuthor(authorName || (state.profile ? state.profile.name : "پژوهشگر"));
+  // Citation Formatter with Multi-Author & Target Bolding Support
+  function formatCitation(article, index, style, targetAuthor, asHtml) {
+    var fullAuthors = String(article.authors || (state.profile ? state.profile.name : "پژوهشگر")).trim();
     var title = String(article.title || "بدون عنوان").replace(/\.+$/, "");
     var venue = String(article.venue || "").replace(/\.+$/, "");
     var year = article.year ? toPersianDigits(article.year) : "بی‌تا";
@@ -126,21 +385,31 @@
     var venuePart = venue ? " " + venue + "." : "";
     var urlPart = url ? " " + url : "";
 
+    // Highlight target author if requested and in HTML mode
+    var authorsDisplay = fullAuthors;
+    if (asHtml && state.boldTargetAuthor && targetAuthor) {
+      var targetClean = cleanAuthor(targetAuthor);
+      if (targetClean) {
+        var re = new RegExp("(" + escapeRegex(targetClean) + ")", "gi");
+        authorsDisplay = authorsDisplay.replace(re, '<strong class="author-highlight">$1</strong>');
+      }
+    }
+
     switch (style) {
       case "vancouver":
-        return displayIndex + ". " + author + ". " + title + "." + venuePart + " " + year + "." + urlPart;
+        return displayIndex + ". " + authorsDisplay + ". " + title + "." + venuePart + " " + year + "." + urlPart;
       case "ieee":
-        return "[" + displayIndex + "] " + author + ", “" + title + ",”" + (venue ? " " + venue + "," : "") + " " + year + "." + urlPart;
+        return "[" + displayIndex + "] " + authorsDisplay + ", “" + title + ",”" + (venue ? " " + venue + "," : "") + " " + year + "." + urlPart;
       case "harvard":
-        return author + " (" + year + ") ‘" + title + "’." + venuePart + urlPart;
+        return authorsDisplay + " (" + year + ") ‘" + title + "’." + venuePart + urlPart;
       case "chicago":
-        return author + ". “" + title + ".”" + venuePart + " (" + year + ")." + urlPart;
+        return authorsDisplay + ". “" + title + ".”" + venuePart + " (" + year + ")." + urlPart;
       case "mla":
-        return author + ". “" + title + ".”" + (venue ? " " + venue + "," : "") + " " + year + "." + urlPart;
+        return authorsDisplay + ". “" + title + ".”" + (venue ? " " + venue + "," : "") + " " + year + "." + urlPart;
       case "bibtex":
         var key = "civilica_" + (article.id || index);
         return "@misc{" + key + ",\n" +
-          "  author = {" + author + "},\n" +
+          "  author = {" + fullAuthors + "},\n" +
           "  title = {" + title + "},\n" +
           "  year = {" + (article.year || "") + "},\n" +
           "  howpublished = {" + venue + "},\n" +
@@ -148,11 +417,11 @@
           "}";
       case "apa7":
       default:
-        return author + " (" + year + "). " + title + "." + venuePart + urlPart;
+        return authorsDisplay + " (" + year + "). " + title + "." + venuePart + urlPart;
     }
   }
 
-  // Pure Client-Side DOM HTML Parser
+  // Client-Side DOM HTML Parser with Authors Extraction
   function parseCivilicaHtml(htmlText, fallbackUrl) {
     var parser = new DOMParser();
     var doc = parser.parseFromString(htmlText, "text/html");
@@ -164,7 +433,6 @@
     var articles = [];
     var seenIds = new Set();
 
-    // Scan sections
     var sectionMappings = [
       { selector: "#confpaper", type: "مقاله کنفرانسی" },
       { selector: "#journalpaper", type: "مقاله ژورنالی" },
@@ -193,18 +461,28 @@
           venue = iTag.textContent.trim();
         }
 
+        // Try to see if authors are mentioned nearby
+        var authors = researcherName;
+        var parent = a.closest("li, p, div");
+        if (parent) {
+          var authorSpan = parent.querySelector(".author, .authors, span[class*='author']");
+          if (authorSpan && authorSpan.textContent.trim()) {
+            authors = authorSpan.textContent.trim();
+          }
+        }
+
         articles.push({
           id: id,
           title: title,
           venue: venue,
           year: year,
           type: sec.type,
+          authors: authors,
           url: "https://civilica.com/doc/" + id + "/"
         });
       });
     });
 
-    // Fallback if specific div ids not found: parse any doc links
     if (articles.length === 0) {
       var allLinks = doc.querySelectorAll('a[href*="/doc/"]');
       allLinks.forEach(function (a, i) {
@@ -221,6 +499,7 @@
           venue: "همایش یا نشریه علمی",
           year: "1402",
           type: "مقاله",
+          authors: researcherName,
           url: "https://civilica.com/doc/" + id + "/"
         });
       });
@@ -237,18 +516,25 @@
     };
   }
 
-  // Load Profile into State & Render
+  // Load Profile Dataset
   function loadDataset(data) {
     state.profile = data.profile;
     state.articles = data.articles;
     state.selected = new Set(data.articles.map(function (a) { return a.id; }));
+    state.targetAuthor = data.profile.name;
+    state.authorFilter = "all";
     state.page = 1;
+
+    var targetInput = document.getElementById("target-author-input");
+    if (targetInput) targetInput.value = state.targetAuthor;
+
     updateAuthorHeader();
     updateKpis();
+    updateAuthorFilterOptions();
     renderActiveView();
   }
 
-  // Update Author Header & KPI Cards
+  // Update Author Header & Target Panel
   function updateAuthorHeader() {
     var p = state.profile;
     if (!p) return;
@@ -261,6 +547,38 @@
     document.getElementById("author-initials").textContent = initials || "CP";
   }
 
+  // Gather Unique Authors for the Filter Dropdown
+  function updateAuthorFilterOptions() {
+    var select = document.getElementById("author-filter-select");
+    if (!select) return;
+
+    var authorsMap = {};
+    state.articles.forEach(function (a) {
+      var raw = a.authors || "";
+      var parts = raw.split(/[,،؛;]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+      parts.forEach(function (name) {
+        var clean = cleanAuthor(name);
+        if (clean.length > 2) {
+          authorsMap[name] = (authorsMap[name] || 0) + 1;
+        }
+      });
+    });
+
+    var sorted = Object.keys(authorsMap).sort(function (a, b) {
+      return authorsMap[b] - authorsMap[a];
+    });
+
+    var html = '<option value="all">همهٔ نویسندگان و همکاران (' + toPersianDigits(state.articles.length) + ')</option>';
+    sorted.forEach(function (name) {
+      var count = authorsMap[name];
+      var isSelected = state.authorFilter === name ? " selected" : "";
+      html += '<option value="' + escapeHtml(name) + '"' + isSelected + '>' + escapeHtml(name) + ' (' + toPersianDigits(count) + ' مقاله)</option>';
+    });
+
+    select.innerHTML = html;
+  }
+
+  // Update KPI Cards
   function updateKpis() {
     var total = state.articles.length;
     var conf = state.articles.filter(function (a) { return a.type === "مقاله کنفرانسی"; }).length;
@@ -285,14 +603,20 @@
     document.getElementById("selected-badge").textContent = toPersianDigits(state.selected.size);
   }
 
-  // Visible filtered articles
+  // Get Visible Articles (Type filter + Author filter + Query)
   function getVisibleArticles() {
     var q = state.query.trim().toLowerCase();
+    var authorF = state.authorFilter.trim().toLowerCase();
+
     return state.articles.filter(function (a) {
       var matchType = state.filter === "all" || a.type === state.filter;
-      var text = (a.title + " " + a.venue + " " + a.year).toLowerCase();
+      var authorsLower = (a.authors || "").toLowerCase();
+      var matchAuthor = authorF === "all" || authorsLower.indexOf(authorF) >= 0;
+
+      var text = (a.title + " " + a.venue + " " + a.year + " " + (a.authors || "")).toLowerCase();
       var matchQuery = !q || text.indexOf(q) >= 0;
-      return matchType && matchQuery;
+
+      return matchType && matchAuthor && matchQuery;
     });
   }
 
@@ -330,7 +654,7 @@
 
     if (visible.length === 0) {
       container.innerHTML = '<div style="text-align:center; padding:3rem; color:var(--text-muted); background:var(--bg-surface); border:1px dashed var(--border-medium); border-radius:var(--radius-lg);">' +
-        '<h3>مقاله‌ای با این مشخصات یافت نشد.</h3><p style="margin-top:6px; font-size:0.9rem;">فیلتر یا عبارت جست‌وجو را تغییر دهید.</p></div>';
+        '<h3>مقاله‌ای با این مشخصات یافت نشد.</h3><p style="margin-top:6px; font-size:0.9rem;">فیلتر نویسنده یا عبارت جست‌وجو را تغییر دهید.</p></div>';
       return;
     }
 
@@ -347,24 +671,55 @@
       document.getElementById("next-page").disabled = state.page >= totalPages;
     }
 
+    var targetClean = cleanAuthor(state.targetAuthor);
+
     container.innerHTML = paged.map(function (article) {
       var isSelected = state.selected.has(article.id);
       var globalIndex = state.articles.indexOf(article) + 1;
-      var citationText = formatCitation(article, globalIndex, state.citationStyle, state.profile ? state.profile.name : "");
+
+      // Highlight target author in the authors line
+      var authorsRaw = article.authors || (state.profile ? state.profile.name : "پژوهشگر");
+      var authorsLineHtml = escapeHtml(authorsRaw);
+      if (state.boldTargetAuthor && targetClean) {
+        var re = new RegExp("(" + escapeRegex(targetClean) + ")", "gi");
+        authorsLineHtml = authorsLineHtml.replace(re, '<strong class="author-highlight">$1</strong>');
+      }
+
+      var citationHtml = formatCitation(article, globalIndex, state.citationStyle, state.targetAuthor, true);
+      var citationPlain = formatCitation(article, globalIndex, state.citationStyle, state.targetAuthor, false);
 
       return (
         '<article class="article-card' + (isSelected ? " is-selected" : "") + '" data-id="' + article.id + '">' +
           '<input type="checkbox" class="article-check" data-id="' + article.id + '"' + (isSelected ? " checked" : "") + ' aria-label="انتخاب">' +
           '<div class="article-content">' +
             '<h3 class="article-title">' + escapeHtml(article.title) + '</h3>' +
+            '<div class="article-authors-row">' +
+              '<svg class="icon" aria-hidden="true" style="color:var(--text-subtle);"><use href="#icon-user"></use></svg>' +
+              '<span class="article-authors-text">نویسندگان: ' + authorsLineHtml + '</span>' +
+              '<button class="btn-subtle btn-trigger-edit-author" data-id="' + article.id + '" type="button" title="ویرایش اسامی نویسندگان این مقاله">' +
+                '<svg class="icon" aria-hidden="true"><use href="#icon-edit"></use></svg>' +
+                '<span>ویرایش</span>' +
+              '</button>' +
+            '</div>' +
+            '<div class="inline-author-edit" id="author-edit-box-' + article.id + '" style="display:none;">' +
+              '<input type="text" class="edit-author-input" data-id="' + article.id + '" value="' + escapeHtml(authorsRaw) + '" placeholder="اسامی نویسندگان (جداشده با ویرگول)...">' +
+              '<button class="btn-primary btn-save-author" data-id="' + article.id + '" type="button" style="padding:4px 10px; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px;">' +
+                '<svg class="icon" aria-hidden="true"><use href="#icon-check"></use></svg>' +
+                '<span>تأیید</span>' +
+              '</button>' +
+              '<button class="btn-secondary btn-cancel-author" data-id="' + article.id + '" type="button" style="padding:4px 10px; font-size:0.8rem; display:inline-flex; align-items:center; gap:4px;">' +
+                '<svg class="icon" aria-hidden="true"><use href="#icon-close"></use></svg>' +
+                '<span>انصراف</span>' +
+              '</button>' +
+            '</div>' +
             '<div class="article-meta">' +
               '<span class="meta-tag">' + escapeHtml(article.type) + '</span>' +
               '<span>سال <b>' + toPersianDigits(article.year) + '</b></span>' +
               '<span>' + escapeHtml(article.venue) + '</span>' +
             '</div>' +
-            '<div class="article-citation">' + escapeHtml(citationText) + '</div>' +
+            '<div class="article-citation">' + citationHtml + '</div>' +
             '<div class="article-actions">' +
-              '<button class="btn-subtle btn-copy-one" data-citation="' + escapeHtml(citationText) + '" type="button">' +
+              '<button class="btn-subtle btn-copy-one" data-citation="' + escapeHtml(citationPlain) + '" type="button">' +
                 '<svg class="icon" aria-hidden="true"><use href="#icon-copy"></use></svg>' +
                 '<span>کپی استناد</span>' +
               '</button>' +
@@ -380,28 +735,36 @@
     }).join("");
   }
 
-  // 2. Table View
+  // 2. Table View with Authors Column
   function renderTableView(visible) {
     var tbody = document.getElementById("table-body");
+    var targetClean = cleanAuthor(state.targetAuthor);
+
     tbody.innerHTML = visible.map(function (article, index) {
       var isSelected = state.selected.has(article.id);
       var rowNum = toPersianDigits(index + 1);
+      var authors = escapeHtml(article.authors || "");
+      if (state.boldTargetAuthor && targetClean) {
+        var re = new RegExp("(" + escapeRegex(targetClean) + ")", "gi");
+        authors = authors.replace(re, '<strong class="author-highlight">$1</strong>');
+      }
 
       return (
         '<tr' + (isSelected ? ' style="background:var(--primary-subtle);"' : "") + '>' +
           '<td><input type="checkbox" class="table-row-check" data-id="' + article.id + '"' + (isSelected ? " checked" : "") + '></td>' +
           '<td style="font-weight:700;">' + rowNum + '</td>' +
           '<td style="font-weight:600; min-width:240px;">' + escapeHtml(article.title) + '</td>' +
+          '<td style="min-width:180px; font-size:0.85rem;">' + authors + '</td>' +
           '<td><span class="meta-tag">' + escapeHtml(article.type) + '</span></td>' +
           '<td>' + toPersianDigits(article.year) + '</td>' +
-          '<td style="color:var(--text-muted);">' + escapeHtml(article.venue) + '</td>' +
+          '<td style="color:var(--text-muted); font-size:0.825rem;">' + escapeHtml(article.venue) + '</td>' +
           '<td><a class="nav-link" href="' + escapeHtml(article.url) + '" target="_blank" rel="noreferrer">مشاهده</a></td>' +
         '</tr>'
       );
     }).join("");
   }
 
-  // 3. Analytics View
+  // 3. Analytics View with Co-Authors Chart
   function renderAnalyticsView(visible) {
     // 1. Years Distribution
     var yearsCount = {};
@@ -412,7 +775,6 @@
 
     var sortedYears = Object.keys(yearsCount).sort().reverse();
     var maxYearCount = Math.max.apply(null, Object.values(yearsCount).concat([1]));
-
     var chartYears = document.getElementById("chart-years");
     chartYears.innerHTML = sortedYears.map(function (y) {
       var count = yearsCount[y];
@@ -450,7 +812,38 @@
       );
     }).join("");
 
-    // 3. Top Venues
+    // 3. Co-Authors Distribution
+    var authorsCount = {};
+    visible.forEach(function (a) {
+      var parts = (a.authors || "").split(/[,،؛;]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+      parts.forEach(function (name) {
+        if (name.length > 2) {
+          authorsCount[name] = (authorsCount[name] || 0) + 1;
+        }
+      });
+    });
+
+    var sortedAuthors = Object.keys(authorsCount).sort(function (a, b) {
+      return authorsCount[b] - authorsCount[a];
+    }).slice(0, 5);
+
+    var chartAuthors = document.getElementById("chart-authors");
+    var maxAuthorCount = Math.max.apply(null, Object.values(authorsCount).concat([1]));
+    chartAuthors.innerHTML = sortedAuthors.map(function (authorName) {
+      var count = authorsCount[authorName];
+      var pct = Math.round((count / maxAuthorCount) * 100);
+      return (
+        '<div class="bar-chart-row" style="cursor:pointer;" title="کلیک برای فیلتر این نویسنده" data-filter-author="' + escapeHtml(authorName) + '">' +
+          '<span class="bar-label" style="width:170px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(authorName) + '</span>' +
+          '<div class="bar-track">' +
+            '<div class="bar-fill" style="width:' + pct + '%; background:linear-gradient(135deg, #10b981 0%, #0ea5e9 100%);"></div>' +
+          '</div>' +
+          '<span class="bar-value">' + toPersianDigits(count) + '</span>' +
+        '</div>'
+      );
+    }).join("");
+
+    // 4. Top Venues
     var venuesCount = {};
     visible.forEach(function (a) {
       var v = a.venue || "سایر";
@@ -478,7 +871,7 @@
     }).join("");
   }
 
-  // Word Document Client-Side Generator
+  // Word Document Client-Side Generator with Target Bolding
   function generateWordDocument() {
     var selectedArticles = state.articles.filter(function (a) {
       return state.selected.has(a.id);
@@ -489,12 +882,17 @@
       return;
     }
 
-    var authorName = state.profile ? state.profile.name : "پژوهشگر";
+    var targetClean = cleanAuthor(state.targetAuthor);
     var style = state.citationStyle;
 
     var citationsHtml = selectedArticles.map(function (a, idx) {
-      var text = formatCitation(a, idx + 1, style, authorName);
-      return '<p class="citation">' + escapeHtml(text) + '</p>';
+      var text = formatCitation(a, idx + 1, style, state.targetAuthor, false);
+      // In Word HTML, bold the target author if requested
+      if (state.boldTargetAuthor && targetClean) {
+        var re = new RegExp("(" + escapeRegex(targetClean) + ")", "gi");
+        text = text.replace(re, "<b style='font-weight:bold;'>$1</b>");
+      }
+      return '<p class="citation">' + text + '</p>';
     }).join("\n");
 
     var docHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
@@ -502,7 +900,7 @@
       "xmlns='http://www.w3.org/TR/REC-html40'>\n" +
       "<head>\n" +
       "<meta charset='utf-8'>\n" +
-      "<title>فهرست مقالات " + escapeHtml(authorName) + "</title>\n" +
+      "<title>فهرست مقالات استخراج‌شده</title>\n" +
       "<!--[if gte mso 9]>\n" +
       "<xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml>\n" +
       "<![endif]-->\n" +
@@ -515,7 +913,7 @@
       "</style>\n" +
       "</head>\n" +
       "<body>\n" +
-      "<h1>فهرست مقالات استخراج‌شده — " + escapeHtml(authorName) + "</h1>\n" +
+      "<h1>فهرست مقالات استنادشده — " + escapeHtml(state.targetAuthor) + "</h1>\n" +
       citationsHtml + "\n" +
       "</body>\n" +
       "</html>";
@@ -523,12 +921,12 @@
     var blob = new Blob([docHtml], { type: "application/msword;charset=utf-8" });
     var link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "CivilicaPulse_" + authorName.replace(/\s+/g, "_") + ".doc";
+    link.download = "CivilicaPulse_" + state.targetAuthor.replace(/\s+/g, "_") + ".doc";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
-    showToast("فایل Word با موفقیت ایجاد و دانلود شد.");
+    showToast("فایل Word با تفکیک نویسندهٔ هدف با موفقیت دانلود شد.");
   }
 
   // Export BibTeX
@@ -537,7 +935,7 @@
     if (selectedArticles.length === 0) return showToast("مقاله‌ای انتخاب نشده است.");
 
     var bib = selectedArticles.map(function (a, i) {
-      return formatCitation(a, i + 1, "bibtex", state.profile ? state.profile.name : "");
+      return formatCitation(a, i + 1, "bibtex", state.targetAuthor, false);
     }).join("\n\n");
 
     var blob = new Blob([bib], { type: "text/plain;charset=utf-8" });
@@ -545,14 +943,14 @@
     showToast("فایل BibTeX ذخیره شد.");
   }
 
-  // Export CSV
+  // Export CSV with Authors Column
   function exportCsv() {
     var selectedArticles = state.articles.filter(function (a) { return state.selected.has(a.id); });
     if (selectedArticles.length === 0) return showToast("مقاله‌ای انتخاب نشده است.");
 
-    var rows = [["ردیف", "عنوان مقاله", "نوع انتشار", "سال", "محل انتشار", "لینک سیویلیکا"]];
+    var rows = [["ردیف", "عنوان مقاله", "نویسندگان", "نوع انتشار", "سال", "محل انتشار", "لینک سیویلیکا"]];
     selectedArticles.forEach(function (a, i) {
-      rows.push([String(i + 1), a.title, a.type, a.year, a.venue, a.url]);
+      rows.push([String(i + 1), a.title, a.authors || "", a.type, a.year, a.venue, a.url]);
     });
 
     var csvContent = "\uFEFF" + rows.map(function (r) {
@@ -571,6 +969,7 @@
 
     var payload = {
       profile: state.profile,
+      targetAuthor: state.targetAuthor,
       extractedAt: new Date().toISOString(),
       articles: selectedArticles
     };
@@ -590,7 +989,7 @@
     URL.revokeObjectURL(link.href);
   }
 
-  // Init Theme & Events
+  // Init Theme
   function initTheme() {
     var saved = localStorage.getItem("civilicapulse_theme") || "light";
     document.documentElement.setAttribute("data-theme", saved);
@@ -665,8 +1064,8 @@
     });
   }
 
-  // Init Filter & Style Pills
-  function initPills() {
+  // Init Filters, Target Author & Style Pills
+  function initPillsAndControls() {
     // Type pills
     var typePills = document.querySelectorAll("#type-pills .pill-btn");
     typePills.forEach(function (p) {
@@ -690,12 +1089,40 @@
       });
     });
 
-    // Search filter
+    // Search filter input
     var filterInput = document.getElementById("article-filter");
     if (filterInput) {
       filterInput.addEventListener("input", function () {
         state.query = filterInput.value;
         state.page = 1;
+        renderActiveView();
+      });
+    }
+
+    // Author Filter Dropdown (Isolation)
+    var authorSelect = document.getElementById("author-filter-select");
+    if (authorSelect) {
+      authorSelect.addEventListener("change", function () {
+        state.authorFilter = authorSelect.value;
+        state.page = 1;
+        renderActiveView();
+      });
+    }
+
+    // Target Author Input
+    var targetInput = document.getElementById("target-author-input");
+    if (targetInput) {
+      targetInput.addEventListener("input", function () {
+        state.targetAuthor = targetInput.value;
+        renderActiveView();
+      });
+    }
+
+    // Bold Target Checkbox
+    var boldCheck = document.getElementById("bold-target-author");
+    if (boldCheck) {
+      boldCheck.addEventListener("change", function () {
+        state.boldTargetAuthor = boldCheck.checked;
         renderActiveView();
       });
     }
@@ -715,17 +1142,17 @@
       if (selected.length === 0) return showToast("هیچ مقاله‌ای انتخاب نشده است.");
 
       var text = selected.map(function (a, idx) {
-        return formatCitation(a, idx + 1, state.citationStyle, state.profile ? state.profile.name : "");
+        return formatCitation(a, idx + 1, state.citationStyle, state.targetAuthor, false);
       }).join("\n\n");
 
       navigator.clipboard.writeText(text).then(function () {
-        showToast("تمامی ارجاعات با موفقیت کپی شدند.");
+        showToast("تمامی ارجاعات با تفکیک نویسندگان با موفقیت کپی شدند.");
       }).catch(function () {
         showToast("خطا در کپی متن به حافظه.");
       });
     });
 
-    // Click delegate for single copy & article checks
+    // Click delegation for single copy, edit authors, checkbox, demo profiles
     document.addEventListener("click", function (e) {
       // Single Copy Button
       var copyBtn = e.target.closest(".btn-copy-one");
@@ -739,14 +1166,66 @@
         return;
       }
 
+      // Inline Edit Author Trigger
+      var editTrigger = e.target.closest(".btn-trigger-edit-author");
+      if (editTrigger) {
+        var id = editTrigger.getAttribute("data-id");
+        var editBox = document.getElementById("author-edit-box-" + id);
+        if (editBox) {
+          editBox.style.display = editBox.style.display === "none" ? "flex" : "none";
+        }
+        return;
+      }
+
+      // Save Edited Authors
+      var saveAuthorBtn = e.target.closest(".btn-save-author");
+      if (saveAuthorBtn) {
+        var artId = saveAuthorBtn.getAttribute("data-id");
+        var inputEl = document.querySelector('.edit-author-input[data-id="' + artId + '"]');
+        if (inputEl) {
+          var newAuthors = inputEl.value.trim();
+          var targetArt = state.articles.find(function (a) { return a.id === artId; });
+          if (targetArt) {
+            targetArt.authors = newAuthors;
+            updateAuthorFilterOptions();
+            renderActiveView();
+            showToast("اسامی نویسندگان این مقاله به‌روز شد.");
+          }
+        }
+        return;
+      }
+
+      // Cancel Edited Authors
+      var cancelAuthorBtn = e.target.closest(".btn-cancel-author");
+      if (cancelAuthorBtn) {
+        var cId = cancelAuthorBtn.getAttribute("data-id");
+        var cBox = document.getElementById("author-edit-box-" + cId);
+        if (cBox) cBox.style.display = "none";
+        return;
+      }
+
+      // Filter by Author from Analytics Chart
+      var authorChartRow = e.target.closest("[data-filter-author]");
+      if (authorChartRow) {
+        var aName = authorChartRow.getAttribute("data-filter-author");
+        state.authorFilter = aName;
+        var aSelect = document.getElementById("author-filter-select");
+        if (aSelect) aSelect.value = aName;
+        state.view = "cards";
+        var vCardsBtn = document.getElementById("view-btn-cards");
+        if (vCardsBtn) vCardsBtn.click();
+        showToast("مقالاتِ همکار «" + aName + "» جداسازی شد.");
+        return;
+      }
+
       // Checkbox click
       var check = e.target.closest(".article-check, .table-row-check");
       if (check) {
-        var id = check.getAttribute("data-id");
+        var chkId = check.getAttribute("data-id");
         if (check.checked) {
-          state.selected.add(id);
+          state.selected.add(chkId);
         } else {
-          state.selected.delete(id);
+          state.selected.delete(chkId);
         }
         renderActiveView();
         return;
@@ -771,12 +1250,12 @@
         var key = demoTarget.getAttribute("data-demo");
         if (DEMO_PROFILES[key]) {
           loadDataset(DEMO_PROFILES[key]);
-          showToast("پروفایل " + DEMO_PROFILES[key].profile.name + " با موفقیت بارگذاری شد.");
+          showToast("پروفایل " + DEMO_PROFILES[key].profile.name + " بارگذاری شد.");
         }
       }
     });
 
-    // Pagination buttons
+    // Pagination
     document.getElementById("prev-page").addEventListener("click", function () {
       if (state.page > 1) {
         state.page--;
@@ -873,7 +1352,6 @@
         loadDataset(data);
         showToast(toPersianDigits(data.articles.length) + " مقاله با موفقیت استخراج شد.");
       } catch (err) {
-        // Defensive: suggest pasting HTML if backend is down
         showToast("سرور در دسترس نیست؛ می‌توانید کد HTML صفحه را در تب دوم بچسبانید.");
       } finally {
         statusEl.style.display = "none";
@@ -886,15 +1364,15 @@
     initTheme();
     initTabs();
     initViewSwitcher();
-    initPills();
+    initPillsAndControls();
     initActions();
     initHtmlImport();
     initForm();
 
-    // Check if bookmarklet passed HTML, else default to Mehrdadi profile
+    // Check if bookmarklet passed HTML, else default to Dr. Roudabeh Samiee profile!
     checkBookmarkletImport();
     if (!state.profile) {
-      loadDataset(DEMO_PROFILES.mehrdadi);
+      loadDataset(DEMO_PROFILES.samiee);
     }
   });
 

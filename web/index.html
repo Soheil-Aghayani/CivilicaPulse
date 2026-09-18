@@ -52,6 +52,13 @@
       <symbol id="icon-chevron-left" viewBox="0 0 24 24">
         <path d="m15 19-7-7 7-7"></path>
       </symbol>
+      <symbol id="icon-user" viewBox="0 0 24 24">
+        <circle cx="12" cy="6" r="4"></circle>
+        <path d="M20 19a8 8 0 0 0-16 0"></path>
+      </symbol>
+      <symbol id="icon-edit" viewBox="0 0 24 24">
+        <path d="m14.36 4.078 2.03-2.03a1.5 1.5 0 0 1 2.122 0l3.44 3.44a1.5 1.5 0 0 1 0 2.121l-2.03 2.03m-5.562-5.56 5.562 5.561m-5.562-5.56L3.982 14.457a3 3 0 0 0-.819 1.464L2 22l6.079-1.163a3 3 0 0 0 1.464-.819l10.38-10.38"></path>
+      </symbol>
       <symbol id="icon-sun" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="4"></circle>
         <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41m14.14-14.14-1.41 1.41"></path>
@@ -161,7 +168,8 @@
 
           <div class="preset-chips">
             <span>نمونه‌های آماده:</span>
-            <button class="chip highlight" type="button" data-demo="mehrdadi">پروفسور ناصر مهردادی</button>
+            <button class="chip highlight" type="button" data-demo="samiee">دکتر رودابه سامعی</button>
+            <button class="chip" type="button" data-demo="mehrdadi">پروفسور ناصر مهردادی</button>
             <button class="chip" type="button" data-demo="karbassi">دکتر احمدرضا کرباسی</button>
             <button class="chip" type="button" data-demo="aghayani">سهیل آقایانی</button>
           </div>
@@ -187,6 +195,13 @@
         <!-- Tab 3: Demo Profiles -->
         <div class="tab-content" id="tab-content-demo" role="tabpanel" aria-labelledby="tab-btn-demo">
           <div class="demo-grid">
+            <div class="demo-card" data-demo="samiee">
+              <div class="demo-avatar">RS</div>
+              <div class="demo-info">
+                <strong>دکتر رودابه سامعی</strong>
+                <span>استاد مهندسی محیط زیست، دانشگاه تهران</span>
+              </div>
+            </div>
             <div class="demo-card" data-demo="mehrdadi">
               <div class="demo-avatar">NM</div>
               <div class="demo-info">
@@ -251,6 +266,19 @@
               </a>
             </div>
           </div>
+
+          <!-- Author Target & Isolation Panel -->
+          <div class="author-target-panel">
+            <span class="author-target-label">
+              <svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+              <span>پژوهشگر هدف (جهت تفکیک و ترفیع):</span>
+            </span>
+            <input id="target-author-input" class="author-target-input" type="text" value="دکتر رودابه سامعی" placeholder="نام پژوهشگر مورد نظر...">
+            <label class="author-checkbox-label" for="bold-target-author" title="پررنگ کردن نام نویسنده در متن ارجاعات و فایل Word">
+              <input type="checkbox" id="bold-target-author" checked>
+              <span>پررنگ‌سازی (Bold) در ارجاعات و Word</span>
+            </label>
+          </div>
         </div>
 
         <!-- 5 KPI Cards -->
@@ -285,7 +313,7 @@
 
       <!-- Control Deck (View Switcher, Filters, Citation Styles, Exports) -->
       <section class="control-deck" id="control-deck">
-        <!-- Top Row: Views + Search -->
+        <!-- Top Row: Views + Search + Author Isolation Filter -->
         <div class="control-row">
           <div class="view-modes" role="group" aria-label="انتخاب حالت نمایش">
             <button class="view-btn active" id="view-btn-cards" type="button">
@@ -302,9 +330,19 @@
             </button>
           </div>
 
-          <div class="search-filter-wrap">
-            <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
-            <input id="article-filter" type="search" placeholder="جست‌وجو در عنوان، سال، محل انتشار...">
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <!-- Author Isolation Dropdown Filter -->
+            <div class="author-select-wrap" title="جداسازی و فیلتر مقالات بر اساس نویسنده و همکار">
+              <svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+              <select id="author-filter-select" aria-label="فیلتر بر اساس نویسنده">
+                <option value="all">همهٔ نویسندگان و همکاران</option>
+              </select>
+            </div>
+
+            <div class="search-filter-wrap">
+              <svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>
+              <input id="article-filter" type="search" placeholder="جست‌وجو در عنوان، سال، همایش...">
+            </div>
           </div>
         </div>
 
@@ -374,6 +412,7 @@
               <th style="width: 40px;"><input type="checkbox" id="table-select-all" checked aria-label="انتخاب همه"></th>
               <th style="width: 50px;">ردیف</th>
               <th>عنوان مقاله</th>
+              <th>نویسندگان</th>
               <th>نوع انتشار</th>
               <th>سال</th>
               <th>محل انتشار / همایش / ژورنال</th>
@@ -403,7 +442,14 @@
             </h3>
             <div id="chart-types"></div>
           </div>
-          <div class="chart-card" style="grid-column: 1 / -1;">
+          <div class="chart-card">
+            <h3>
+              <svg class="icon" aria-hidden="true"><use href="#icon-user"></use></svg>
+              <span>همکاران پژوهشی برتر (Co-Authors)</span>
+            </h3>
+            <div id="chart-authors"></div>
+          </div>
+          <div class="chart-card">
             <h3>
               <svg class="icon" aria-hidden="true"><use href="#icon-cards"></use></svg>
               <span>پرتکرارترین نشریات و همایش‌های علمی</span>
