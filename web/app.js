@@ -6,7 +6,8 @@
     profile: null,
     selected: new Set(),
     filter: "all",
-    query: ""
+    query: "",
+    citationStyle: "apa7"
   };
   var prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -32,6 +33,8 @@
     clearSelection: document.getElementById("clear-selection-button"),
     selectedCount: document.getElementById("selected-count"),
     exportButton: document.getElementById("export-button"),
+    citationStylePills: document.querySelectorAll(".citation-style-pill"),
+    wordFileType: document.getElementById("word-file-type"),
     toast: document.getElementById("toast")
   };
 
@@ -106,11 +109,16 @@
     state.selected = new Set();
     state.filter = "all";
     state.query = "";
+    state.citationStyle = "apa7";
 
     elements.articleFilter.value = "";
     document.querySelectorAll(".filter-pill").forEach(function (pill) {
       pill.classList.toggle("is-active", pill.dataset.filter === "all");
     });
+    elements.citationStylePills.forEach(function (pill) {
+      pill.classList.toggle("is-active", pill.dataset.style === state.citationStyle);
+    });
+    elements.wordFileType.value = "docx";
 
     elements.resultsTitle.textContent = state.profile.name || "پژوهشگر سیویلیکا";
     elements.profileSource.href = state.profile.url || "#";
@@ -152,10 +160,10 @@
     elements.resultsList.innerHTML = visible.map(function (article) {
       var selected = state.selected.has(article.id);
       var articleId = escapeHtml(article.id);
-      var title = escapeHtml(article.title || "بدون عنوان");
-      var venue = escapeHtml(article.venue || "محل انتشار نامشخص");
-      var year = escapeHtml(article.year || "—");
-      var type = escapeHtml(article.type || "مقاله");
+      var title = escapeHtml(toPersianDigits(article.title || "بدون عنوان"));
+      var venue = escapeHtml(toPersianDigits(article.venue || "محل انتشار نامشخص"));
+      var year = escapeHtml(toPersianDigits(article.year || "—"));
+      var type = escapeHtml(toPersianDigits(article.type || "مقاله"));
       var url = escapeHtml(article.url || "#");
       var number = state.articles.indexOf(article) + 1;
       return (
@@ -209,7 +217,7 @@
     renderResults();
   }
 
-  async function exportDocx() {
+  async function exportWord() {
     if (!state.selected.size) {
       showToast("حداقل یک مقاله را انتخاب کنید.");
       return;
@@ -218,33 +226,36 @@
     var selectedArticles = state.articles.filter(function (article) {
       return state.selected.has(article.id);
     });
-    setLoading(elements.exportButton, true, "در حال ساخت DOCX...");
+    var fileType = elements.wordFileType.value === "doc" ? "doc" : "docx";
+    setLoading(elements.exportButton, true, "در حال ساخت فایل Word...");
     try {
-      var response = await fetch("/api/export-docx", {
+      var response = await fetch("/api/export-word", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           profile: state.profile,
-          articles: selectedArticles
+          articles: selectedArticles,
+          style: state.citationStyle,
+          file_type: fileType
         })
       });
       if (!response.ok) {
         var errorJson = await response.json().catch(function () {
           return {};
         });
-        throw new Error(errorJson.error || "ساخت فایل DOCX انجام نشد.");
+        throw new Error(errorJson.error || "ساخت فایل Word انجام نشد.");
       }
       var blob = await response.blob();
       var downloadUrl = URL.createObjectURL(blob);
       var link = document.createElement("a");
       link.href = downloadUrl;
-      link.download = "civilica-articles.docx";
+      link.download = "civilica-references-" + state.citationStyle + "." + fileType;
       document.body.appendChild(link);
       link.click();
       link.remove();
       URL.revokeObjectURL(downloadUrl);
     } catch (error) {
-      showToast(error.message || "ساخت فایل DOCX انجام نشد.");
+      showToast(error.message || "ساخت فایل Word انجام نشد.");
     } finally {
       setLoading(elements.exportButton, false);
     }
@@ -314,10 +325,19 @@
     });
   });
 
+  elements.citationStylePills.forEach(function (pill) {
+    pill.addEventListener("click", function () {
+      state.citationStyle = pill.dataset.style || "apa7";
+      elements.citationStylePills.forEach(function (item) {
+        item.classList.toggle("is-active", item === pill);
+      });
+    });
+  });
+
   elements.selectVisible.addEventListener("click", toggleVisibleSelection);
   elements.clearSelection.addEventListener("click", function () {
     state.selected = new Set();
     renderResults();
   });
-  elements.exportButton.addEventListener("click", exportDocx);
+  elements.exportButton.addEventListener("click", exportWord);
 })();

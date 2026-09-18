@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#1e3a5f">
-    <meta name="description" content="استخراج فهرست مقالات پژوهشگر سیویلیکا و دریافت فایل DOCX">
+    <meta name="description" content="استخراج فهرست مقالات پژوهشگر سیویلیکا و دریافت فایل Word با سبک ارجاع دلخواه">
     <title>استخراج مقالات سیویلیکا</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="preload" href="/assets/fonts/IRANYekanXFaNum-Regular.woff2" as="font" type="font/woff2" crossorigin>
@@ -70,7 +70,7 @@
         <h1 id="page-title">فهرست مقالات پژوهشگر را یک‌جا دریافت کنید.</h1>
         <p class="hero-text">
           لینک صفحهٔ پژوهشگر سیویلیکا را وارد کنید، مقاله‌ها را بررسی و انتخاب کنید،
-          سپس فهرست مرتب آن‌ها را به‌صورت DOCX دانلود کنید.
+          سپس فهرست مرتب آن‌ها را در یک فایل Word دریافت کنید.
         </p>
       </section>
 
@@ -184,14 +184,47 @@
           <p>فیلتر یا عبارت جست‌وجو را تغییر دهید.</p>
         </div>
 
+        <div class="format-panel panel">
+          <div class="format-heading">
+            <div>
+              <p class="section-kicker">مرحلهٔ سوم</p>
+              <h2>سبک ارجاع و فایل خروجی</h2>
+            </div>
+            <p class="format-intro">سبک مناسب مقاله یا پایان‌نامه‌تان را انتخاب کنید.</p>
+          </div>
+          <div class="format-controls">
+            <div class="style-control">
+              <span class="field-label">سبک ارجاع</span>
+              <div class="citation-style-pills" role="group" aria-label="انتخاب سبک ارجاع">
+                <button class="citation-style-pill is-active" type="button" data-style="apa7" dir="ltr">APA 7th</button>
+                <button class="citation-style-pill" type="button" data-style="vancouver" dir="ltr">Vancouver</button>
+                <button class="citation-style-pill" type="button" data-style="ieee" dir="ltr">IEEE</button>
+                <button class="citation-style-pill" type="button" data-style="harvard" dir="ltr">Harvard</button>
+                <button class="citation-style-pill" type="button" data-style="chicago" dir="ltr">Chicago</button>
+                <button class="citation-style-pill" type="button" data-style="mla" dir="ltr">MLA 9th</button>
+                <button class="citation-style-pill" type="button" data-style="bibtex" dir="ltr">BibTeX</button>
+              </div>
+            </div>
+            <label class="file-type-control" for="word-file-type">
+              <span class="field-label">نوع فایل Word</span>
+              <select id="word-file-type">
+                <option value="docx">Word استاندارد (.docx)</option>
+                <option value="doc">Word سازگار قدیمی (.doc)</option>
+              </select>
+            </label>
+          </div>
+          <p class="format-help">هر دو فایل در Word باز می‌شوند؛ DOCX فرمت استاندارد امروزی و DOC گزینهٔ سازگاری قدیمی است.</p>
+          <p class="format-help">اگر نام نویسندگان در صفحهٔ عمومی سیویلیکا نباشد، نام پژوهشگر به‌عنوان جایگزین می‌آید و باید قبل از استناد نهایی بررسی شود.</p>
+        </div>
+
         <div class="export-bar panel">
           <div>
-            <p class="section-kicker">مرحلهٔ سوم</p>
+            <p class="section-kicker">مرحلهٔ چهارم</p>
             <h2><span id="selected-count">۰</span> مقاله برای خروجی آماده است</h2>
           </div>
           <button class="button button-primary" id="export-button" type="button" disabled>
             <svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>
-            دریافت فایل DOCX
+            دریافت فایل Word
           </button>
         </div>
       </section>
@@ -216,8 +249,8 @@
           </article>
           <article class="step-card">
             <span class="step-number">۳</span>
-            <h3>DOCX را دانلود کنید</h3>
-            <p>خروجی فارسی و راست‌چین برای ویرایش در Word آماده می‌شود.</p>
+            <h3>فایل Word را دریافت کنید</h3>
+            <p>خروجی فارسی و راست‌چین با سبک ارجاع انتخابی برای ویرایش آماده می‌شود.</p>
           </article>
         </div>
       </section>

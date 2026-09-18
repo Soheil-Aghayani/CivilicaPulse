@@ -403,6 +403,8 @@ textarea {
 .button:focus-visible,
 .text-button:focus-visible,
 .filter-pill:focus-visible,
+.citation-style-pill:focus-visible,
+select:focus-visible,
 a:focus-visible,
 input[type="checkbox"]:focus-visible {
   outline: 3px solid rgb(37 99 235 / 28%);
@@ -765,6 +767,92 @@ input[type="checkbox"]:focus-visible {
   font-size: 13px;
 }
 
+.format-panel {
+  margin-top: 16px;
+  padding: 20px 22px;
+}
+
+.format-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.format-heading h2 {
+  margin: 0;
+  color: var(--primary-strong);
+  font-size: 18px;
+  line-height: 1.45;
+}
+
+.format-intro,
+.format-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.format-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 260px);
+  align-items: end;
+  gap: 20px;
+  margin-top: 18px;
+}
+
+.style-control,
+.file-type-control {
+  min-width: 0;
+}
+
+.citation-style-pills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.citation-style-pill {
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  touch-action: manipulation;
+  transition: color 180ms ease, background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.citation-style-pill:hover,
+.citation-style-pill.is-active {
+  border-color: var(--primary);
+  color: #fff;
+  background: var(--primary);
+}
+
+.file-type-control select {
+  display: block;
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  outline: none;
+}
+
+.format-help {
+  margin-top: 12px;
+  line-height: 1.7;
+}
+
 .export-bar {
   position: sticky;
   bottom: 16px;
@@ -858,6 +946,18 @@ input[type="checkbox"]:focus-visible {
     flex-direction: column;
   }
 
+  .format-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .format-intro {
+    max-width: 300px;
+  }
+
+  .export-bar {
+    position: static;
+  }
+
   .summary-stats {
     width: 100%;
     justify-content: space-between;
@@ -925,8 +1025,14 @@ input[type="checkbox"]:focus-visible {
   .import-card,
   .results-toolbar,
   .profile-summary,
+  .format-panel,
   .export-bar {
     padding: 18px;
+  }
+
+  .format-heading {
+    flex-direction: column;
+    gap: 4px;
   }
 
   .toolbar-top {
@@ -953,6 +1059,10 @@ input[type="checkbox"]:focus-visible {
 
   .article-card .article-link {
     grid-column: 2;
+  }
+
+  .citation-style-pill {
+    flex: 1 1 auto;
   }
 
   .export-bar {

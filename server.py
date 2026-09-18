@@ -1,4 +1,4 @@
-"""Local-first Civilica article extractor with a Persian DOCX export."""
+"""Local-first Civilica article extractor with Persian Word exports."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from urllib.request import Request, urlopen
 
 from flask import Flask, jsonify, request, send_file, send_from_directory
 
+from citation_formats import format_citation, normalize_style, style_label
 from civilica_parser import parse_profile_html
 
 
@@ -21,6 +22,12 @@ WEB_DIR = ROOT / "web"
 MAX_HTML_BYTES = 8 * 1024 * 1024
 MAX_ARTICLES = 1000
 USER_AGENT = "CivilicaPaperExtractor/0.1 (local research utility)"
+PERSIAN_FONT = "B Nazanin"
+ENGLISH_FONT = "Times New Roman"
+PERSIAN_DIGITS = "۰۱۲۳۴۵۶۷۸۹"
+_URL_PATTERN = re.compile(r"https?://[^\s]+", re.IGNORECASE)
+_PERSIAN_CHAR_PATTERN = re.compile(r"[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]")
+_LATIN_CHAR_PATTERN = re.compile(r"[A-Za-z]")
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = MAX_HTML_BYTES + 256 * 1024
@@ -113,6 +120,7 @@ def sanitize_articles(value: object) -> list[dict[str, str]]:
                 "venue": safe_text(item.get("venue")),
                 "year": safe_text(item.get("year"), 32),
                 "type": safe_text(item.get("type"), 120),
+                "authors": safe_text(item.get("authors")),
                 "url": safe_text(item.get("url"), 1000),
             }
         )
@@ -181,32 +189,130 @@ def add_bidi(paragraph) -> None:
         paragraph_format.append(OxmlElement("w:bidi"))
 
 
-def set_run_font(run, size: int | None = None, bold: bool | None = None) -> None:
+def persianize_digits(value: object) -> str:
+    text = str(value or "")
+    arabic_digits = "٠١٢٣٤٥٦٧٨٩"
+    translation = str.maketrans(
+        "0123456789" + arabic_digits,
+        PERSIAN_DIGITS + PERSIAN_DIGITS,
+    )
+    return text.translate(translation)
+
+
+def _script_chunks(value: str):
+    current_script = "fa"
+    buffer: list[str] = []
+
+    def flush() -> tuple[str, str] | None:
+        if not buffer:
+            return None
+        chunk = "".join(buffer)
+        buffer.clear()
+        return chunk, current_script
+
+    for character in value:
+        if character in "\r\n":
+            pending = flush()
+            if pending:
+                yield pending
+            yield "\n", "fa"
+            current_script = "fa"
+            continue
+
+        if _PERSIAN_CHAR_PATTERN.search(character) or character in PERSIAN_DIGITS:
+            detected_script = "fa"
+        elif _LATIN_CHAR_PATTERN.search(character):
+            detected_script = "en"
+        else:
+            detected_script = current_script
+
+        if buffer and detected_script != current_script:
+            pending = flush()
+            if pending:
+                yield pending
+        current_script = detected_script
+        buffer.append(character)
+
+    pending = flush()
+    if pending:
+        yield pending
+
+
+def word_text_chunks(value: object):
+    text = str(value or "")
+    cursor = 0
+    for match in _URL_PATTERN.finditer(text):
+        before = text[cursor:match.start()]
+        if before:
+            for chunk, script in _script_chunks(persianize_digits(before)):
+                yield chunk, script, False
+        yield match.group(0), "en", True
+        cursor = match.end()
+
+    remainder = text[cursor:]
+    if remainder:
+        for chunk, script in _script_chunks(persianize_digits(remainder)):
+            yield chunk, script, False
+
+
+def set_run_font(
+    run,
+    size: float | None = None,
+    bold: bool | None = None,
+    font_name: str = PERSIAN_FONT,
+    rtl: bool = True,
+) -> None:
     from docx.oxml.ns import qn
     from docx.shared import Pt
 
-    run.font.name = "IRANYekanXFaNum"
-    run._element.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), "IRANYekanXFaNum")
-    run._element.get_or_add_rPr().rFonts.set(qn("w:cs"), "IRANYekanXFaNum")
+    rpr = run._element.get_or_add_rPr()
+    rfonts = rpr.rFonts
+    if rfonts is None:
+        from docx.oxml import OxmlElement
+
+        rfonts = OxmlElement("w:rFonts")
+        rpr.insert(0, rfonts)
+    run.font.name = font_name
+    for font_slot in ("ascii", "hAnsi", "eastAsia", "cs"):
+        rfonts.set(qn(f"w:{font_slot}"), font_name)
     if size is not None:
         run.font.size = Pt(size)
     if bold is not None:
         run.bold = bold
 
+    rtl_tag = rpr.find(qn("w:rtl"))
+    if rtl and rtl_tag is None:
+        from docx.oxml import OxmlElement
 
-def style_paragraph(paragraph, size: int | None = None, bold: bool | None = None) -> None:
-    from docx.enum.text import WD_ALIGN_PARAGRAPH
+        rpr.append(OxmlElement("w:rtl"))
+    elif not rtl and rtl_tag is not None:
+        rpr.remove(rtl_tag)
 
-    add_bidi(paragraph)
-    paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
-    for run in paragraph.runs:
-        set_run_font(run, size=size, bold=bold)
+
+def add_word_text(paragraph, value: object, size: float = 12, bold: bool = False) -> None:
+    for chunk, script, is_url in word_text_chunks(value):
+        if chunk == "\n":
+            if paragraph.runs:
+                paragraph.runs[-1].add_break()
+            else:
+                paragraph.add_run().add_break()
+            continue
+        run = paragraph.add_run(chunk)
+        if script == "fa":
+            set_run_font(run, size=size, bold=bold, font_name=PERSIAN_FONT, rtl=True)
+        else:
+            set_run_font(
+                run,
+                size=max(size - 1, 1),
+                bold=bold,
+                font_name=ENGLISH_FONT,
+                rtl=False,
+            )
 
 
 def build_docx(payload: dict[str, object]) -> io.BytesIO:
     from docx import Document
     from docx.enum.text import WD_ALIGN_PARAGRAPH
-    from docx.oxml.ns import qn
     from docx.shared import Inches, Pt
 
     document = Document()
@@ -217,77 +323,163 @@ def build_docx(payload: dict[str, object]) -> io.BytesIO:
     section.right_margin = Inches(0.75)
 
     normal = document.styles["Normal"]
-    normal.font.name = "IRANYekanXFaNum"
-    normal._element.get_or_add_rPr().rFonts.set(qn("w:eastAsia"), "IRANYekanXFaNum")
-    normal._element.get_or_add_rPr().rFonts.set(qn("w:cs"), "IRANYekanXFaNum")
+    normal.font.name = PERSIAN_FONT
+    normal_rpr = normal._element.get_or_add_rPr()
+    normal_rfonts = normal_rpr.rFonts
+    if normal_rfonts is None:
+        from docx.oxml import OxmlElement
+
+        normal_rfonts = OxmlElement("w:rFonts")
+        normal_rpr.insert(0, normal_rfonts)
+    from docx.oxml.ns import qn
+
+    for font_slot in ("ascii", "hAnsi", "eastAsia", "cs"):
+        normal_rfonts.set(qn(f"w:{font_slot}"), PERSIAN_FONT)
     normal.font.size = Pt(10.5)
 
     profile = payload.get("profile") or {}
     profile_name = str(profile.get("name") or "پژوهشگر سیویلیکا")
     source_url = str(profile.get("url") or "")
     articles = list(payload.get("articles") or [])[:MAX_ARTICLES]
+    selected_style = normalize_style(payload.get("style"))
+    selected_style_label = style_label(selected_style)
+    citations = [
+        format_citation(article, index, selected_style, profile_name)
+        for index, article in enumerate(articles, start=1)
+    ]
 
     title = document.add_paragraph()
     title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    title_run = title.add_run("فهرست مقالات سیویلیکا")
-    set_run_font(title_run, size=18, bold=True)
     add_bidi(title)
+    add_word_text(title, "فهرست منابع سیویلیکا", size=18, bold=True)
 
     subtitle = document.add_paragraph()
     subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    subtitle_run = subtitle.add_run(profile_name)
-    set_run_font(subtitle_run, size=13, bold=True)
     add_bidi(subtitle)
+    add_word_text(subtitle, profile_name, size=13, bold=True)
 
     info = document.add_paragraph()
-    info.add_run("تعداد مقالات انتخاب‌شده: ").bold = True
-    info.add_run(str(len(articles)))
-    info.add_run("  |  منبع: ")
-    info.add_run(source_url)
-    style_paragraph(info, size=9.5)
+    add_bidi(info)
+    add_word_text(info, "تعداد مقالات انتخاب‌شده: ", size=9.5, bold=True)
+    add_word_text(info, len(articles), size=9.5)
+    add_word_text(info, "  |  سبک ارجاع: ", size=9.5, bold=True)
+    add_word_text(info, selected_style_label, size=9.5)
+    add_word_text(info, "  |  منبع: ", size=9.5, bold=True)
+    add_word_text(info, source_url, size=9.5)
+    info.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
     note = document.add_paragraph()
-    note.add_run(
-        "این فایل بر اساس اطلاعات نمایه‌شده در صفحهٔ پژوهشگر سیویلیکا ساخته شده است؛ "
-        "متن کامل یا فایل PDF مقاله‌ها در این خروجی درج نمی‌شود."
+    add_bidi(note)
+    add_word_text(
+        note,
+        "این فایل بر اساس اطلاعات نمایه‌شده در صفحهٔ پژوهشگر سیویلیکا ساخته شده است. "
+        "اگر نام نویسندگان در فهرست عمومی موجود نباشد، نام پژوهشگر پروفایل به‌عنوان "
+        "نویسندهٔ جایگزین استفاده می‌شود؛ برای استناد نهایی آن را بررسی کنید.",
+        size=9.5,
     )
-    style_paragraph(note, size=9.5)
+    note.alignment = WD_ALIGN_PARAGRAPH.RIGHT
 
-    for index, article in enumerate(articles, start=1):
-        heading = document.add_paragraph()
-        heading_run = heading.add_run(f"{index}. {article.get('title') or 'بدون عنوان'}")
-        set_run_font(heading_run, size=12, bold=True)
-        add_bidi(heading)
-
-        metadata = document.add_paragraph()
-        metadata.add_run("نوع: ").bold = True
-        metadata.add_run(str(article.get("type") or "مقاله"))
-        metadata.add_run("  |  سال: ")
-        metadata.add_run(str(article.get("year") or "نامشخص"))
-        style_paragraph(metadata, size=10)
-
-        venue = str(article.get("venue") or "").strip()
-        if venue:
-            venue_paragraph = document.add_paragraph()
-            venue_paragraph.add_run("محل انتشار: ").bold = True
-            venue_paragraph.add_run(venue)
-            style_paragraph(venue_paragraph, size=10)
-
-        link_paragraph = document.add_paragraph()
-        link_paragraph.add_run("پیوند: ").bold = True
-        link_paragraph.add_run(str(article.get("url") or ""))
-        style_paragraph(link_paragraph, size=9)
+    for citation in citations:
+        citation_paragraph = document.add_paragraph()
+        add_bidi(citation_paragraph)
+        citation_paragraph.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        citation_paragraph.paragraph_format.right_indent = Inches(0.35)
+        citation_paragraph.paragraph_format.first_line_indent = Inches(-0.35)
+        citation_paragraph.paragraph_format.space_after = Pt(7)
+        add_word_text(citation_paragraph, citation, size=10)
 
     output = io.BytesIO()
-    document.core_properties.title = f"مقالات سیویلیکا - {profile_name}"
-    document.core_properties.subject = "فهرست مقالات پژوهشگر"
+    document.core_properties.title = f"منابع سیویلیکا - {profile_name}"
+    document.core_properties.subject = f"فهرست منابع با سبک {selected_style_label}"
     document.save(output)
     output.seek(0)
     return output
 
 
+def html_word_markup(value: object, size: float = 12, bold: bool = False) -> str:
+    from html import escape
+
+    markup: list[str] = []
+    for chunk, script, is_url in word_text_chunks(value):
+        if chunk == "\n":
+            markup.append("<br>")
+            continue
+        font_name = PERSIAN_FONT if script == "fa" else ENGLISH_FONT
+        font_size = size if script == "fa" else max(size - 1, 1)
+        direction = "rtl" if script == "fa" and not is_url else "ltr"
+        weight = "font-weight:700;" if bold else ""
+        markup.append(
+            f'<span dir="{direction}" style="font-family:{escape(font_name)};'
+            f'font-size:{font_size}pt;{weight}">{escape(chunk)}</span>'
+        )
+    return "".join(markup)
+
+
+def build_word_html(payload: dict[str, object]) -> io.BytesIO:
+    from html import escape
+
+    profile = payload.get("profile") or {}
+    profile_name = str(profile.get("name") or "پژوهشگر سیویلیکا")
+    source_url = str(profile.get("url") or "")
+    articles = list(payload.get("articles") or [])[:MAX_ARTICLES]
+    selected_style = normalize_style(payload.get("style"))
+    selected_style_label = style_label(selected_style)
+    citations = [
+        format_citation(article, index, selected_style, profile_name)
+        for index, article in enumerate(articles, start=1)
+    ]
+    citation_markup = "".join(
+        '<p class="citation" dir="rtl">'
+        + html_word_markup(citation, size=10)
+        + "</p>"
+        for citation in citations
+    )
+    title_markup = html_word_markup("فهرست منابع سیویلیکا", size=18, bold=True)
+    profile_markup = html_word_markup(profile_name, size=13, bold=True)
+    meta_markup = (
+        html_word_markup("سبک ارجاع: ", size=9.5, bold=True)
+        + html_word_markup(selected_style_label, size=9.5)
+        + html_word_markup(" | تعداد: ", size=9.5, bold=True)
+        + html_word_markup(len(articles), size=9.5)
+        + html_word_markup(" | منبع: ", size=9.5, bold=True)
+        + html_word_markup(source_url, size=9.5)
+    )
+    note_markup = html_word_markup(
+        "این فایل بر اساس اطلاعات نمایه‌شده در صفحهٔ پژوهشگر سیویلیکا ساخته شده است. "
+        "اگر نام نویسندگان در فهرست عمومی موجود نباشد، نام پژوهشگر پروفایل به‌عنوان "
+        "نویسندهٔ جایگزین استفاده می‌شود؛ برای استناد نهایی آن را بررسی کنید.",
+        size=9.5,
+    )
+    html = f"""<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>منابع سیویلیکا - {escape(profile_name)}</title>
+<style>
+  @page {{ margin: 2cm; }}
+  body {{ font-family: "B Nazanin", Tahoma, Arial, sans-serif; direction: rtl; text-align: right; font-size: 11pt; line-height: 1.7; }}
+  h1 {{ margin-bottom: 4pt; direction: rtl; }}
+  p {{ direction: rtl; text-align: right; }}
+  .meta {{ color: #475569; font-size: 9pt; }}
+  .citation {{ margin: 0 0 10pt 0; padding-right: 0.35in; text-indent: -0.35in; }}
+</style>
+</head>
+<body>
+<h1>{title_markup}</h1>
+<p>{profile_markup}</p>
+<p class="meta">{meta_markup}</p>
+<p class="meta">{note_markup}</p>
+{citation_markup}
+</body>
+</html>"""
+    output = io.BytesIO(("\ufeff" + html).encode("utf-8"))
+    output.seek(0)
+    return output
+
+
+@app.post("/api/export-word")
 @app.post("/api/export-docx")
-def export_docx():
+def export_word():
     body = request.get_json(silent=True) or {}
     articles = body.get("articles")
     if not isinstance(articles, list) or not articles:
@@ -295,34 +487,44 @@ def export_docx():
     if len(articles) > MAX_ARTICLES:
         return json_error("تعداد مقاله‌های انتخاب‌شده بیش از حد مجاز است.", 400)
 
+    profile = body.get("profile") if isinstance(body.get("profile"), dict) else {}
     try:
-        profile = body.get("profile") if isinstance(body.get("profile"), dict) else {}
-        output = build_docx(
-            {
-                "profile": {
-                    "name": safe_text(profile.get("name"), 500),
-                    "url": safe_text(profile.get("url"), 1000),
-                },
-                "articles": sanitize_articles(articles),
-            }
-        )
+        sanitized_payload = {
+            "profile": {
+                "name": safe_text(profile.get("name"), 500),
+                "url": safe_text(profile.get("url"), 1000),
+            },
+            "articles": sanitize_articles(articles),
+            "style": normalize_style(body.get("style")),
+        }
+    except ValueError as error:
+        return json_error(str(error), 400)
+
+    file_type = "doc" if str(body.get("file_type", "")).lower() == "doc" else "docx"
+    try:
+        if file_type == "doc":
+            output = build_word_html(sanitized_payload)
+            mimetype = "application/msword"
+        else:
+            output = build_docx(sanitized_payload)
+            mimetype = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     except ValueError as error:
         return json_error(str(error), 400)
     except ImportError:
         return json_error(
-            "کتابخانهٔ ساخت DOCX نصب نیست. requirements.txt را نصب کنید.",
+            "کتابخانهٔ ساخت فایل Word نصب نیست. requirements.txt را نصب کنید.",
             503,
         )
     except Exception:
-        app.logger.exception("DOCX export failed")
-        return json_error("ساخت فایل DOCX انجام نشد.", 500)
+        app.logger.exception("Word export failed")
+        return json_error("ساخت فایل Word انجام نشد.", 500)
 
-    filename = f"civilica-articles-{datetime.now(timezone.utc):%Y%m%d}.docx"
+    filename = f"civilica-references-{normalize_style(body.get('style'))}-{datetime.now(timezone.utc):%Y%m%d}.{file_type}"
     return send_file(
         output,
         as_attachment=True,
         download_name=filename,
-        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        mimetype=mimetype,
     )
 
 
