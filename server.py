@@ -76,7 +76,7 @@ def canonical_profile_url(value: str) -> str:
 
     match = re.fullmatch(r"/p/(\d+)/?", parsed.path)
     if not match:
-        raise ValueError("لینک باید شبیه https://civilica.com/p/176225/ باشد.")
+        raise ValueError("لینک باید شبیه https://civilica.com/p/xxxxxx/ باشد.")
 
     return f"https://civilica.com/p/{match.group(1)}/"
 
@@ -590,12 +590,12 @@ def export_word():
         return json_error(str(error), 400)
     except ImportError:
         return json_error(
-            "کتابخانهٔ ساخت فایل Word نصب نیست. requirements.txt را نصب کنید.",
+            "کتابخانهٔ ساخت فایل ورد نصب نیست. requirements.txt را نصب کنید.",
             503,
         )
     except Exception:
         app.logger.exception("Word export failed")
-        return json_error("ساخت فایل Word انجام نشد.", 500)
+        return json_error("ساخت فایل ورد انجام نشد.", 500)
 
     filename = f"civilica-references-{normalize_style(body.get('style'))}-{datetime.now(timezone.utc):%Y%m%d}.{file_type}"
     return send_file(
