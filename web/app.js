@@ -89,6 +89,21 @@
       : '<svg class="icon" aria-hidden="true"><use href="#icon-search"></use></svg>';
   }
 
+  function setWordExportState(isLoading, label) {
+    var exportButton = document.getElementById("btn-export-word");
+    if (!exportButton) return;
+
+    exportButton.disabled = isLoading;
+    exportButton.setAttribute("aria-busy", isLoading ? "true" : "false");
+    exportButton.setAttribute("aria-label", isLoading ? label : "دریافت فایل Word");
+    exportButton.title = isLoading ? label : "دریافت فایل Word";
+    exportButton.innerHTML = isLoading
+      ? '<svg class="icon loading-icon" aria-hidden="true"><use href="#icon-loader"></use></svg>' +
+        '<span class="compact-label">' + escapeHtml(label) + '</span>'
+      : '<svg class="icon" aria-hidden="true"><use href="#icon-download"></use></svg>' +
+        '<span class="compact-label">دریافت Word</span>';
+  }
+
   async function requestProfileFromBackend(profileUrl) {
     var response = await fetchWithTimeout(apiUrl("/api/parse-profile"), {
       method: "POST",
@@ -868,7 +883,8 @@
 
   // Word Document Generator — use the backend so .docx and Persian typography stay correct
   async function generateWordDocument() {
-    if (!(await waitForAuthorEnrichment())) return;
+    var exportButton = document.getElementById("btn-export-word");
+    if (exportButton && exportButton.disabled) return;
 
     var selectedArticles = state.articles.filter(function (a) {
       return state.selected.has(a.id);
@@ -879,12 +895,31 @@
       return;
     }
 
-    var exportButton = document.getElementById("btn-export-word");
     var includeLinks = document.getElementById("include-links");
-    if (exportButton) exportButton.disabled = true;
+    setWordExportState(
+      true,
+      state.authorsPending ? "تکمیل نویسندگان…" : "ساخت Word…"
+    );
 
     try {
-      var response = await fetch(apiUrl("/api/export-word"), {
+      showToast(
+        state.authorsPending
+          ? "در حال تکمیل نام نویسندگان و آماده‌سازی Word…"
+          : "در حال ساخت فایل Word…"
+      );
+
+      if (!(await waitForAuthorEnrichment())) return;
+
+      selectedArticles = state.articles.filter(function (a) {
+        return state.selected.has(a.id);
+      });
+      if (selectedArticles.length === 0) {
+        showToast("ابتدا مقاله‌ای را انتخاب کنید.");
+        return;
+      }
+
+      setWordExportState(true, "ساخت Word…");
+      var response = await fetchWithTimeout(apiUrl("/api/export-word"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -896,7 +931,7 @@
           isolate_author: state.isolateTargetAuthor,
           file_type: "docx"
         })
-      });
+      }, backendRequestTimeout);
 
       if (!response.ok) {
         var errorPayload = await response.json().catch(function () { return {}; });
@@ -913,9 +948,13 @@
       downloadBlob(blob, filename);
       showToast("فایل Word آماده شد.");
     } catch (error) {
-      showToast(userFacingError(error, "ساخت فایل Word انجام نشد."));
+      showToast(
+        error && error.name === "AbortError"
+          ? "ساخت فایل Word بیشتر از زمان مجاز طول کشید؛ دوباره تلاش کنید."
+          : userFacingError(error, "ساخت فایل Word انجام نشد.")
+      );
     } finally {
-      if (exportButton) exportButton.disabled = false;
+      setWordExportState(false);
     }
   }
 
