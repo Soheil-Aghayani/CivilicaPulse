@@ -21,6 +21,7 @@
     authorFilter: "all",
     targetAuthor: "",   // generalized: auto-filled from profile name, user can override freely
     boldTargetAuthor: true,
+    isolateTargetAuthor: false,
     query: "",
     citationStyle: "apa7",
     view: "cards",
@@ -31,7 +32,7 @@
   var apiBaseUrl = String(window.CIVILICA_API_BASE_URL || "").replace(/\/+$/, "");
   var profileFallbackProxy = "https://api.cors.lol/?url=";
   // Render may need a few seconds to wake up on the first request.
-  var backendRequestTimeout = 45000;
+  var backendRequestTimeout = 120000;
   var fallbackRequestTimeout = 30000;
 
   function apiUrl(path) {
@@ -152,8 +153,50 @@
   }
 
   function cleanAuthor(name) {
-    var val = String(name || "نویسنده").trim();
-    return val.replace(/^(?:(?:آقای|خانم|دکتر|پروفسور|استاد|مهندس)\s+)+/gi, "");
+    var val = String(name || "").trim();
+    return val.replace(/^(?:(?:آقای|خانم|دکتر|پروفسور|استاد|مهندس)\s+)+/gi, "").trim();
+  }
+
+  function splitAuthors(value) {
+    return String(value || "")
+      .split(/\s*(?:[,،؛;]|\s+(?:و|and)\s+)\s*/i)
+      .map(function (part) { return part.trim(); })
+      .filter(Boolean);
+  }
+
+  function normalizeAuthorForMatch(value) {
+    return cleanAuthor(value)
+      .replace(/ي/g, "ی")
+      .replace(/ى/g, "ی")
+      .replace(/ك/g, "ک")
+      .replace(/ـ/g, "")
+      .replace(/\u200c/g, " ")
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+  }
+
+  function getCitationAuthors(article, targetAuthor, isolate) {
+    var fullAuthors = String(article.authors || (state.profile ? state.profile.name : "پژوهشگر")).trim();
+    var targetKey = normalizeAuthorForMatch(targetAuthor);
+    if (!isolate || targetKey.length < 3) return fullAuthors;
+
+    var match = splitAuthors(fullAuthors).find(function (candidate) {
+      var candidateKey = normalizeAuthorForMatch(candidate);
+      return candidateKey && (
+        candidateKey === targetKey ||
+        candidateKey.indexOf(targetKey) >= 0 ||
+        targetKey.indexOf(candidateKey) >= 0
+      );
+    });
+    return match || fullAuthors;
+  }
+
+  function syncIsolateTargetButton() {
+    var button = document.getElementById("isolate-target-author");
+    if (!button) return;
+    var active = state.isolateTargetAuthor && normalizeAuthorForMatch(state.targetAuthor).length >= 3;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
   }
 
   function escapeRegex(str) {
@@ -174,7 +217,7 @@
 
   // Citation Formatter with Multi-Author & Target Bolding Support
   function formatCitation(article, index, style, targetAuthor, asHtml) {
-    var fullAuthors = String(article.authors || (state.profile ? state.profile.name : "پژوهشگر")).trim();
+    var fullAuthors = getCitationAuthors(article, targetAuthor, state.isolateTargetAuthor);
     var title = String(article.title || "بدون عنوان").replace(/\.+$/, "");
     var venue = String(article.venue || "").replace(/\.+$/, "");
     var year = article.year ? toPersianDigits(article.year) : "بی‌تا";
@@ -383,12 +426,14 @@
     state.profile = profile;
     state.articles = articles;
     state.selected = new Set(articles.map(function (a) { return a.id; }));
-    state.targetAuthor = profile.name || "";
+    state.targetAuthor = cleanAuthor(profile.name || "");
     state.authorFilter = "all";
+    state.isolateTargetAuthor = false;
     state.page = 1;
 
     var targetInput = document.getElementById("target-author-input");
     if (targetInput) targetInput.value = state.targetAuthor;
+    syncIsolateTargetButton();
 
     setResultsVisible(true);
     updateAuthorHeader();
@@ -423,7 +468,7 @@
     var authorsMap = {};
     state.articles.forEach(function (a) {
       var raw = a.authors || "";
-      var parts = raw.split(/[,،؛;]+/).map(function (s) { return s.trim(); }).filter(Boolean);
+      var parts = splitAuthors(raw);
       parts.forEach(function (name) {
         var clean = cleanAuthor(name);
         if (clean.length > 2) {
@@ -549,7 +594,8 @@
 
       // Highlight target author in the authors line
       var authorsRaw = article.authors || (state.profile ? state.profile.name : "پژوهشگر");
-      var authorsLineHtml = escapeHtml(authorsRaw);
+      var authorsDisplay = getCitationAuthors(article, state.targetAuthor, state.isolateTargetAuthor);
+      var authorsLineHtml = escapeHtml(authorsDisplay);
       if (state.boldTargetAuthor && targetClean) {
         var re = new RegExp("(" + escapeRegex(targetClean) + ")", "gi");
         authorsLineHtml = authorsLineHtml.replace(re, '<strong class="author-highlight">$1</strong>');
@@ -613,7 +659,8 @@
     tbody.innerHTML = visible.map(function (article, index) {
       var isSelected = state.selected.has(article.id);
       var rowNum = toPersianDigits(index + 1);
-      var authors = escapeHtml(article.authors || "");
+      var authorsDisplay = getCitationAuthors(article, state.targetAuthor, state.isolateTargetAuthor);
+      var authors = escapeHtml(authorsDisplay);
       if (state.boldTargetAuthor && targetClean) {
         var re = new RegExp("(" + escapeRegex(targetClean) + ")", "gi");
         authors = authors.replace(re, '<strong class="author-highlight">$1</strong>');
@@ -765,6 +812,8 @@
           articles: selectedArticles,
           style: state.citationStyle,
           include_links: includeLinks ? includeLinks.checked : true,
+          target_author: state.targetAuthor,
+          isolate_author: state.isolateTargetAuthor,
           file_type: "docx"
         })
       });
@@ -831,6 +880,7 @@
     var payload = {
       profile: state.profile,
       targetAuthor: state.targetAuthor,
+      isolateTargetAuthor: state.isolateTargetAuthor,
       extractedAt: new Date().toISOString(),
       articles: selectedArticles
     };
@@ -974,6 +1024,17 @@
     if (targetInput) {
       targetInput.addEventListener("input", function () {
         state.targetAuthor = targetInput.value;
+        syncIsolateTargetButton();
+        renderActiveView();
+      });
+    }
+
+    // Target author isolation toggle
+    var isolateButton = document.getElementById("isolate-target-author");
+    if (isolateButton) {
+      isolateButton.addEventListener("click", function () {
+        state.isolateTargetAuthor = !state.isolateTargetAuthor;
+        syncIsolateTargetButton();
         renderActiveView();
       });
     }

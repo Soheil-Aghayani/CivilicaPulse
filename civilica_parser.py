@@ -172,8 +172,38 @@ class CivilicaProfileParser(HTMLParser):
         }
 
 
+class CivilicaArticleMetaParser(HTMLParser):
+    """Extract the ordered author metadata from a Civilica article page."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.authors: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        if tag.lower() != "meta":
+            return
+
+        attributes = dict(attrs)
+        meta_name = normalize_text(attributes.get("name") or "").casefold()
+        if meta_name != "citation_author":
+            return
+
+        author = normalize_text(attributes.get("content") or "")
+        if author and author not in self.authors:
+            self.authors.append(author)
+
+
 def parse_profile_html(html: str, source_url: str) -> dict[str, object]:
     parser = CivilicaProfileParser(source_url)
     parser.feed(html)
     parser.close()
     return parser.result()
+
+
+def parse_article_authors_html(html: str) -> str:
+    """Return the article's deduplicated citation authors in page order."""
+
+    parser = CivilicaArticleMetaParser()
+    parser.feed(html)
+    parser.close()
+    return "، ".join(parser.authors)

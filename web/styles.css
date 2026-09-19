@@ -1019,6 +1019,12 @@ button:disabled {
   height: 16px;
 }
 
+.author-isolate-btn.active {
+  background: var(--primary-subtle);
+  border-color: var(--primary-light);
+  color: var(--primary-text);
+}
+
 /* Author filter dropdown in control deck */
 .author-select-wrap {
   display: inline-flex;

@@ -19,6 +19,7 @@ _PERSIAN_DIGIT_TRANSLATION = str.maketrans(
     "0123456789٠١٢٣٤٥٦٧٨٩",
     "۰۱۲۳۴۵۶۷۸۹۰۱۲۳۴۵۶۷۸۹",
 )
+_AUTHOR_SEPARATOR = re.compile(r"\s*(?:[,،؛;]|\s+(?:و|and)\s+)\s*", re.IGNORECASE)
 
 
 def normalize_style(value: object) -> str:
@@ -57,8 +58,42 @@ def profile_author(value: object) -> str:
     return persianize_digits(author or "نویسندهٔ پروفایل")
 
 
-def citation_author(article: dict[str, object], fallback_author: str) -> str:
-    return persianize_digits(clean_text(article.get("authors"), profile_author(fallback_author)))
+def _author_match_key(value: object) -> str:
+    return (
+        clean_text(value)
+        .replace("ي", "ی")
+        .replace("ى", "ی")
+        .replace("ك", "ک")
+        .replace("ـ", "")
+        .casefold()
+    )
+
+
+def citation_author(
+    article: dict[str, object],
+    fallback_author: str,
+    target_author: str = "",
+    isolate_author: bool = False,
+) -> str:
+    authors = persianize_digits(clean_text(article.get("authors"), profile_author(fallback_author)))
+    if not isolate_author:
+        return authors
+
+    target = clean_text(target_author)
+    target_key = _author_match_key(target)
+    if len(target_key) < 3:
+        return authors
+
+    for candidate in _AUTHOR_SEPARATOR.split(authors):
+        candidate = clean_text(candidate)
+        candidate_key = _author_match_key(candidate)
+        if candidate_key and (
+            candidate_key == target_key
+            or candidate_key in target_key
+            or target_key in candidate_key
+        ):
+            return candidate
+    return authors
 
 
 def citation_year(article: dict[str, object]) -> str:
@@ -84,11 +119,13 @@ def format_citation(
     style: object,
     fallback_author: str,
     include_url: bool = True,
+    target_author: str = "",
+    isolate_author: bool = False,
 ) -> str:
     """Return one citation using only the metadata available for an article."""
 
     selected_style = normalize_style(style)
-    authors = citation_author(article, fallback_author)
+    authors = citation_author(article, fallback_author, target_author, isolate_author)
     title = citation_title(article)
     venue = citation_venue(article)
     year = citation_year(article)

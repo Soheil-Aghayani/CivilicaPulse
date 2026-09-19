@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -14,13 +15,16 @@ from urllib.request import Request, urlopen
 from flask import Flask, jsonify, request, send_file, send_from_directory
 
 from citation_formats import format_citation, normalize_style, style_label
-from civilica_parser import parse_profile_html
+from civilica_parser import parse_article_authors_html, parse_profile_html
 
 
 ROOT = Path(__file__).resolve().parent
 WEB_DIR = ROOT / "web"
 MAX_HTML_BYTES = 8 * 1024 * 1024
 MAX_ARTICLES = 1000
+ARTICLE_AUTHORS_WORKERS = 8
+ARTICLE_AUTHORS_TIMEOUT = 15
+ARTICLE_DETAIL_MAX_BYTES = 2 * 1024 * 1024
 USER_AGENT = "CivilicaPaperExtractor/0.1 (local research utility)"
 PERSIAN_FONT = "B Nazanin"
 ENGLISH_FONT = "Times New Roman"
@@ -32,6 +36,7 @@ _ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩"
 _URL_PATTERN = re.compile(r"https?://[^\s]+", re.IGNORECASE)
 _PERSIAN_CHAR_PATTERN = re.compile(r"[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]")
 _LATIN_CHAR_PATTERN = re.compile(r"[A-Za-z]")
+_CIVILICA_HOSTS = {"civilica.com", "www.civilica.com"}
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = MAX_HTML_BYTES + 256 * 1024
@@ -87,7 +92,12 @@ def decode_html(raw: bytes, content_type: str = "") -> str:
     return raw.decode(encoding, errors="replace")
 
 
-def fetch_profile_html(source_url: str) -> str:
+def fetch_civilica_html(
+    source_url: str,
+    *,
+    timeout: int = 30,
+    max_bytes: int = MAX_HTML_BYTES,
+) -> str:
     request_headers = {
         "User-Agent": USER_AGENT,
         "Accept": "text/html,application/xhtml+xml",
@@ -95,12 +105,12 @@ def fetch_profile_html(source_url: str) -> str:
         "Accept-Encoding": "identity",
     }
     try:
-        with urlopen(Request(source_url, headers=request_headers), timeout=30) as response:
+        with urlopen(Request(source_url, headers=request_headers), timeout=timeout) as response:
             final_host = (urlparse(response.geturl()).hostname or "").lower()
-            if final_host not in {"civilica.com", "www.civilica.com"}:
+            if final_host not in _CIVILICA_HOSTS:
                 raise RuntimeError("سیویلیکا به یک مقصد ناشناس هدایت کرد.")
-            raw = response.read(MAX_HTML_BYTES + 1)
-            if len(raw) > MAX_HTML_BYTES:
+            raw = response.read(max_bytes + 1)
+            if len(raw) > max_bytes:
                 raise ValueError("حجم صفحه بیشتر از حد مجاز است.")
             return decode_html(raw, response.headers.get("Content-Type", ""))
     except HTTPError as error:
@@ -110,10 +120,60 @@ def fetch_profile_html(source_url: str) -> str:
                 "حالت «چسباندن HTML» را امتحان کنید."
             ) from error
         raise RuntimeError(f"سیویلیکا با خطای {error.code} پاسخ داد.") from error
-    except (URLError, TimeoutError) as error:
+    except (URLError, TimeoutError, OSError) as error:
         raise RuntimeError(
             "اتصال به سیویلیکا برقرار نشد. می‌توانید HTML صفحه را در حالت جایگزین وارد کنید."
         ) from error
+
+
+def fetch_profile_html(source_url: str) -> str:
+    return fetch_civilica_html(source_url)
+
+
+def fetch_article_authors(article: dict[str, object]) -> str:
+    """Fetch one trusted Civilica article page and read its citation authors."""
+
+    article_url = str(article.get("url") or "").strip()
+    parsed = urlparse(article_url)
+    if (
+        parsed.scheme not in {"http", "https"}
+        or (parsed.hostname or "").lower() not in _CIVILICA_HOSTS
+        or not re.fullmatch(r"/doc/\d+/?", parsed.path)
+    ):
+        return ""
+
+    html = fetch_civilica_html(
+        article_url,
+        timeout=ARTICLE_AUTHORS_TIMEOUT,
+        max_bytes=ARTICLE_DETAIL_MAX_BYTES,
+    )
+    return parse_article_authors_html(html)
+
+
+def enrich_article_authors(articles: list[dict[str, object]]) -> None:
+    """Add co-authors without making a failed detail request lose an article."""
+
+    pending = [
+        article
+        for article in articles
+        if article.get("url") and not str(article.get("authors") or "").strip()
+    ]
+    if not pending:
+        return
+
+    with ThreadPoolExecutor(max_workers=ARTICLE_AUTHORS_WORKERS) as executor:
+        futures = {
+            executor.submit(fetch_article_authors, article): article
+            for article in pending
+        }
+        for future in as_completed(futures):
+            article = futures[future]
+            try:
+                authors = future.result()
+            except Exception:
+                authors = ""
+            if authors:
+                article["authors"] = authors
 
 
 def normalized_payload(result: dict[str, object]) -> dict[str, object]:
@@ -192,6 +252,7 @@ def parse_profile():
                 "مقاله‌ای در صفحه پیدا نشد. لینک را بررسی کنید یا HTML صفحه را در حالت جایگزین بچسبانید.",
                 422,
             )
+        enrich_article_authors(result["articles"])
         return jsonify(normalized_payload(result))
     except ValueError as error:
         return json_error(str(error), 400)
@@ -397,8 +458,18 @@ def build_docx(payload: dict[str, object]) -> io.BytesIO:
     selected_style = normalize_style(payload.get("style"))
     selected_style_label = style_label(selected_style)
     include_links = boolean_value(payload.get("include_links"), default=True)
+    target_author = safe_text(payload.get("target_author"), 500)
+    isolate_author = boolean_value(payload.get("isolate_author"), default=False)
     citations = [
-        format_citation(article, index, selected_style, profile_name, include_links)
+        format_citation(
+            article,
+            index,
+            selected_style,
+            profile_name,
+            include_links,
+            target_author,
+            isolate_author,
+        )
         for index, article in enumerate(articles, start=1)
     ]
 
@@ -494,8 +565,18 @@ def build_word_html(payload: dict[str, object]) -> io.BytesIO:
     selected_style = normalize_style(payload.get("style"))
     selected_style_label = style_label(selected_style)
     include_links = boolean_value(payload.get("include_links"), default=True)
+    target_author = safe_text(payload.get("target_author"), 500)
+    isolate_author = boolean_value(payload.get("isolate_author"), default=False)
     citations = [
-        format_citation(article, index, selected_style, profile_name, include_links)
+        format_citation(
+            article,
+            index,
+            selected_style,
+            profile_name,
+            include_links,
+            target_author,
+            isolate_author,
+        )
         for index, article in enumerate(articles, start=1)
     ]
     citation_markup = "".join(
@@ -574,6 +655,8 @@ def export_word():
             "articles": sanitize_articles(articles),
             "style": normalize_style(body.get("style")),
             "include_links": boolean_value(body.get("include_links"), default=True),
+            "target_author": safe_text(body.get("target_author"), 500),
+            "isolate_author": boolean_value(body.get("isolate_author"), default=False),
         }
     except ValueError as error:
         return json_error(str(error), 400)

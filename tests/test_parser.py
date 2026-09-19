@@ -1,6 +1,6 @@
 import unittest
 
-from civilica_parser import parse_profile_html
+from civilica_parser import parse_article_authors_html, parse_profile_html
 
 
 SAMPLE_HTML = """
@@ -37,6 +37,20 @@ class CivilicaParserTests(unittest.TestCase):
         self.assertEqual(result["articles"][1]["year"], "1401")
         self.assertEqual(result["articles"][1]["venue"], "مجلهٔ نمونه")
         self.assertEqual(result["articles"][1]["type"], "مقاله ژورنالی")
+
+    def test_extracts_ordered_article_authors_from_citation_metadata(self):
+        html = """
+        <head>
+          <meta name="citation_author" content="رضا خاکپور">
+          <meta name="citation_author" content="ناصر مهردادی">
+          <meta name="citation_author" content="ناصر مهردادی">
+        </head>
+        """
+
+        self.assertEqual(
+            parse_article_authors_html(html),
+            "رضا خاکپور، ناصر مهردادی",
+        )
 
 
 if __name__ == "__main__":

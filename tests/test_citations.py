@@ -25,6 +25,24 @@ class CitationFormatTests(unittest.TestCase):
         self.assertTrue(format_citation(ARTICLE, 2, "vancouver", "پژوهشگر نمونه").startswith("۲."))
         self.assertIn("@misc", format_citation(ARTICLE, 1, "bibtex", "پژوهشگر نمونه"))
 
+    def test_isolating_target_author_preserves_all_authors_by_default(self):
+        article = {**ARTICLE, "authors": "رضا خاکپور، ناصر مهردادی، امیر پازوکی"}
+
+        full = format_citation(article, 1, "apa7", "ناصر مهردادی")
+        isolated = format_citation(
+            article,
+            1,
+            "apa7",
+            "ناصر مهردادی",
+            True,
+            "ناصر مهردادی",
+            True,
+        )
+
+        self.assertIn("رضا خاکپور", full)
+        self.assertIn("امیر پازوکی", full)
+        self.assertEqual(isolated.split(" (")[0], "ناصر مهردادی")
+
 
 class WordExportTests(unittest.TestCase):
     def setUp(self):
@@ -97,6 +115,29 @@ class WordExportTests(unittest.TestCase):
         text = "\n".join(paragraph.text for paragraph in document.paragraphs)
         self.assertNotIn("https://civilica.com", text)
         self.assertIn("صفحهٔ پژوهشگر سیویلیکا", text)
+
+    def test_docx_can_isolate_the_target_author(self):
+        article = {
+            **ARTICLE,
+            "authors": "رضا خاکپور، ناصر مهردادی، امیر پازوکی",
+        }
+        response = self.client.post(
+            "/api/export-word",
+            json={
+                **self.payload,
+                "articles": [article],
+                "target_author": "ناصر مهردادی",
+                "isolate_author": True,
+                "file_type": "docx",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        document = Document(BytesIO(response.data))
+        citation = document.paragraphs[-1].text
+        self.assertIn("ناصر مهردادی", citation)
+        self.assertNotIn("رضا خاکپور", citation)
+        self.assertNotIn("امیر پازوکی", citation)
 
     def test_doc_compatibility_export_is_word_readable(self):
         response = self.client.post(
