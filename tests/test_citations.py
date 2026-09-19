@@ -1,5 +1,6 @@
 import unittest
 from io import BytesIO
+from unittest.mock import patch
 
 from docx import Document
 
@@ -156,6 +157,55 @@ class WordExportTests(unittest.TestCase):
         self.assertIn(b"font-size: 12pt", response.data)
         self.assertIn(b"font-size:11pt", response.data)
         self.assertIn(b"/doc/12/", response.data)
+
+
+class AuthorEnrichmentEndpointTests(unittest.TestCase):
+    def setUp(self):
+        self.client = app.test_client()
+
+    def test_profile_response_does_not_block_on_detail_pages(self):
+        parsed = {
+            "profile": {
+                "id": "176225",
+                "name": "پژوهشگر نمونه",
+                "url": "https://civilica.com/p/176225/",
+            },
+            "articles": [{
+                "id": "12",
+                "title": "مقالهٔ اول",
+                "venue": "مجلهٔ نمونه",
+                "year": "1402",
+                "type": "مقاله ژورنالی",
+                "url": "https://civilica.com/doc/12/",
+            }],
+        }
+        with patch("server.fetch_profile_html", return_value="<html></html>"), \
+                patch("server.parse_profile_html", return_value=parsed), \
+                patch("server.enrich_article_authors") as enrich:
+            response = self.client.post(
+                "/api/parse-profile",
+                json={"url": "https://civilica.com/p/176225/"},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.get_json()["authors_pending"])
+        enrich.assert_not_called()
+
+    def test_author_enrichment_returns_authors_for_one_batch(self):
+        def fill_authors(articles):
+            articles[0]["authors"] = "رضا خاکپور، ناصر مهردادی"
+
+        with patch("server.enrich_article_authors", side_effect=fill_authors):
+            response = self.client.post(
+                "/api/enrich-authors",
+                json={"articles": [{**ARTICLE, "authors": ""}]},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.get_json()["articles"][0]["authors"],
+            "رضا خاکپور، ناصر مهردادی",
+        )
 
 
 if __name__ == "__main__":

@@ -26,13 +26,18 @@
     citationStyle: "apa7",
     view: "cards",
     page: 1,
-    pageSize: 10
+    pageSize: 10,
+    authorsPending: false,
+    authorEnrichmentRun: 0,
+    authorEnrichmentPromise: null
   };
 
   var apiBaseUrl = String(window.CIVILICA_API_BASE_URL || "").replace(/\/+$/, "");
   var profileFallbackProxy = "https://api.cors.lol/?url=";
   // Render may need a few seconds to wake up on the first request.
   var backendRequestTimeout = 120000;
+  var authorEnrichmentBatchSize = 24;
+  var authorEnrichmentRequestTimeout = 45000;
   var fallbackRequestTimeout = 30000;
 
   function apiUrl(path) {
@@ -123,6 +128,68 @@
       if (!shouldUseProfileFallback(error)) throw error;
       return requestProfileFromFallback(profileUrl);
     }
+  }
+
+  function mergeEnrichedAuthors(enrichedArticles, run) {
+    if (run !== state.authorEnrichmentRun || !Array.isArray(enrichedArticles)) return;
+
+    var authorsById = {};
+    enrichedArticles.forEach(function (article) {
+      var id = String(article && article.id || "");
+      var authors = String(article && article.authors || "").trim();
+      if (id && authors) authorsById[id] = authors;
+    });
+
+    state.articles.forEach(function (article) {
+      var authors = authorsById[String(article.id)];
+      if (authors) article.authors = authors;
+    });
+
+    updateAuthorFilterOptions();
+    renderActiveView();
+  }
+
+  async function enrichAuthorsInBackground(articles, run) {
+    var pending = (articles || []).filter(function (article) {
+      return article && article.url && !String(article.authors || "").trim();
+    });
+    var completed = true;
+
+    for (var start = 0; start < pending.length; start += authorEnrichmentBatchSize) {
+      if (run !== state.authorEnrichmentRun) return false;
+
+      var batch = pending.slice(start, start + authorEnrichmentBatchSize);
+      try {
+        var response = await fetchWithTimeout(apiUrl("/api/enrich-authors"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ articles: batch })
+        }, authorEnrichmentRequestTimeout);
+        var payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || "تکمیل نام نویسندگان انجام نشد.");
+        mergeEnrichedAuthors(payload.articles || [], run);
+      } catch (error) {
+        // Already received batches remain useful. Do not interrupt the user's
+        // workflow with a toast for a single slow or blocked detail batch.
+        completed = false;
+        break;
+      }
+    }
+
+    if (run === state.authorEnrichmentRun) {
+      state.authorsPending = false;
+    }
+    return completed;
+  }
+
+  async function waitForAuthorEnrichment() {
+    if (!state.authorsPending || !state.authorEnrichmentPromise) return true;
+    await state.authorEnrichmentPromise;
+    if (state.authorsPending) {
+      showToast("تکمیل نام نویسندگان انجام نشد؛ دوباره استخراج کنید.");
+      return false;
+    }
+    return true;
   }
 
   function setResultsVisible(visible) {
@@ -430,6 +497,10 @@
     state.authorFilter = "all";
     state.isolateTargetAuthor = false;
     state.page = 1;
+    state.authorEnrichmentRun += 1;
+    var enrichmentRun = state.authorEnrichmentRun;
+    state.authorsPending = Boolean(data && data.authors_pending);
+    state.authorEnrichmentPromise = Promise.resolve(true);
 
     var targetInput = document.getElementById("target-author-input");
     if (targetInput) targetInput.value = state.targetAuthor;
@@ -440,6 +511,13 @@
     updateKpis();
     updateAuthorFilterOptions();
     renderActiveView();
+
+    if (state.authorsPending) {
+      state.authorEnrichmentPromise = enrichAuthorsInBackground(
+        state.articles.slice(),
+        enrichmentRun
+      );
+    }
     return true;
   }
 
@@ -790,6 +868,8 @@
 
   // Word Document Generator — use the backend so .docx and Persian typography stay correct
   async function generateWordDocument() {
+    if (!(await waitForAuthorEnrichment())) return;
+
     var selectedArticles = state.articles.filter(function (a) {
       return state.selected.has(a.id);
     });
@@ -840,7 +920,9 @@
   }
 
   // Export BibTeX
-  function exportBibTeX() {
+  async function exportBibTeX() {
+    if (!(await waitForAuthorEnrichment())) return;
+
     var selectedArticles = state.articles.filter(function (a) { return state.selected.has(a.id); });
     if (selectedArticles.length === 0) return showToast("مقاله‌ای انتخاب نشده است.");
 
@@ -854,7 +936,9 @@
   }
 
   // Export CSV with Authors Column
-  function exportCsv() {
+  async function exportCsv() {
+    if (!(await waitForAuthorEnrichment())) return;
+
     var selectedArticles = state.articles.filter(function (a) { return state.selected.has(a.id); });
     if (selectedArticles.length === 0) return showToast("مقاله‌ای انتخاب نشده است.");
 
@@ -873,7 +957,9 @@
   }
 
   // Export JSON
-  function exportJson() {
+  async function exportJson() {
+    if (!(await waitForAuthorEnrichment())) return;
+
     var selectedArticles = state.articles.filter(function (a) { return state.selected.has(a.id); });
     if (selectedArticles.length === 0) return showToast("مقاله‌ای انتخاب نشده است.");
 

@@ -25,6 +25,9 @@ MAX_ARTICLES = 1000
 ARTICLE_AUTHORS_WORKERS = 8
 ARTICLE_AUTHORS_TIMEOUT = 15
 ARTICLE_DETAIL_MAX_BYTES = 2 * 1024 * 1024
+# Keep each proxy request short. The profile endpoint returns the article list
+# immediately; the browser fills in co-authors through these small batches.
+AUTHOR_ENRICH_BATCH_SIZE = 24
 USER_AGENT = "CivilicaPaperExtractor/0.1 (local research utility)"
 PERSIAN_FONT = "B Nazanin"
 ENGLISH_FONT = "Times New Roman"
@@ -252,12 +255,35 @@ def parse_profile():
                 "مقاله‌ای در صفحه پیدا نشد. لینک را بررسی کنید یا HTML صفحه را در حالت جایگزین بچسبانید.",
                 422,
             )
-        enrich_article_authors(result["articles"])
-        return jsonify(normalized_payload(result))
+        payload = normalized_payload(result)
+        payload["authors_pending"] = True
+        return jsonify(payload)
     except ValueError as error:
         return json_error(str(error), 400)
     except RuntimeError as error:
         return json_error(str(error), 502)
+
+
+@app.post("/api/enrich-authors")
+def enrich_authors():
+    """Resolve co-authors for one short batch after the profile is visible."""
+
+    body = request.get_json(silent=True) or {}
+    try:
+        articles = sanitize_articles(body.get("articles"))
+        if len(articles) > AUTHOR_ENRICH_BATCH_SIZE:
+            return json_error(
+                f"تعداد مقاله‌های هر مرحله نباید بیشتر از {AUTHOR_ENRICH_BATCH_SIZE} باشد.",
+                400,
+            )
+        enrich_article_authors(articles)
+        return jsonify({
+            "ok": True,
+            "articles": articles,
+            "count": len(articles),
+        })
+    except ValueError as error:
+        return json_error(str(error), 400)
 
 
 @app.post("/api/parse-html")
