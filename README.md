@@ -2,155 +2,167 @@
 
 <img src="docs/readme-hero.svg" alt="CivilicaPulse visual hero" width="100%">
 
-# <picture><source media="(prefers-color-scheme: dark)" srcset="https://api.iconify.design/solar:document-text-linear.svg?color=%2338BDF8"><source media="(prefers-color-scheme: light)" srcset="https://api.iconify.design/solar:document-text-linear.svg?color=%231E3A5F"><img alt="Document Icon" src="https://api.iconify.design/solar:document-text-linear.svg?color=%231E3A5F" width="38" height="38" align="text-bottom"></picture> CIVILICAPULSE
-### **Extract, Curate, and Export Civilica Researcher Publications into Word Citations.**
+# <picture><source media="(prefers-color-scheme: dark)" srcset="https://api.iconify.design/solar:document-text-linear.svg?color=%2338BDF8"><source media="(prefers-color-scheme: light)" srcset="https://api.iconify.design/solar:document-text-linear.svg?color=%231E3A5F"><img alt="Document icon" src="https://api.iconify.design/solar:document-text-linear.svg?color=%231E3A5F" width="38" height="38" align="text-bottom"></picture> CivilicaPulse
 
-[![Live Experience](https://img.shields.io/badge/Live_Site-Visit_CivilicaPulse-1E3A5F?style=for-the-badge&logoColor=white)](https://soheil-aghayani.github.io/CivilicaPulse/)
-[![Architecture](https://img.shields.io/badge/Architecture-Static_UI_%7C_Flask_API-0F172A?style=for-the-badge&logoColor=white)](#)
-[![Deployment](https://img.shields.io/badge/Hosting-GitHub_Pages_%7C_Cloudflare_%7C_Render-2563EB?style=for-the-badge&logo=cloudflare&logoColor=white)](#)
-[![License](https://img.shields.io/badge/License-MIT-0F172A?style=for-the-badge&logoColor=white)](#)
+### Extract, curate, and export Civilica researcher publications.
 
-<br/>
+[![Live site](https://img.shields.io/badge/Live_site-Civilica%2B-1E3A5F?style=for-the-badge)](https://soheil-aghayani.github.io/CivilicaPulse/)
+[![Architecture](https://img.shields.io/badge/Architecture-Static_UI_%7C_Flask_API-0F172A?style=for-the-badge)](#architecture)
+[![Deployment](https://img.shields.io/badge/Hosting-GitHub_Pages_%7C_Cloudflare_%7C_Render-2563EB?style=for-the-badge&logo=cloudflare&logoColor=white)](#deployment)
+[![License](https://img.shields.io/badge/License-MIT-0F172A?style=for-the-badge)](LICENSE)
+
+<br>
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=600&size=23&pause=1000&color=38BDF8&center=true&vCenter=true&width=860&lines=Automated+Civilica+Researcher+Publication+Extractor;Multi-Style+Citations:+APA+7th,+Vancouver,+IEEE,+Harvard,+Chicago,+MLA,+BibTeX;Formatted+Word+Export+with+Standard+.docx+%26+Legacy+.doc;Native+RTL+Persian+Typography+with+B+Nazanin+%26+Times+New+Roman;Zero-Auth,+Zero-Cost,+and+100%25+Privacy-Preserving">
-    <source media="(prefers-color-scheme: light)" srcset="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=600&size=23&pause=1000&color=1E3A5F&center=true&vCenter=true&width=860&lines=Automated+Civilica+Researcher+Publication+Extractor;Multi-Style+Citations:+APA+7th,+Vancouver,+IEEE,+Harvard,+Chicago,+MLA,+BibTeX;Formatted+Word+Export+with+Standard+.docx+%26+Legacy+.doc;Native+RTL+Persian+Typography+with+B+Nazanin+%26+Times+New+Roman;Zero-Auth,+Zero-Cost,+and+100%25+Privacy-Preserving">
-    <img alt="Typing SVG" src="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=600&size=23&pause=1000&color=1E3A5F&center=true&vCenter=true&width=860&lines=Automated+Civilica+Researcher+Publication+Extractor;Multi-Style+Citations:+APA+7th,+Vancouver,+IEEE,+Harvard,+Chicago,+MLA,+BibTeX;Formatted+Word+Export+with+Standard+.docx+%26+Legacy+.doc;Native+RTL+Persian+Typography+with+B+Nazanin+%26+Times+New+Roman;Zero-Auth,+Zero-Cost,+and+100%25+Privacy-Preserving">
+    <source media="(prefers-color-scheme: dark)" srcset="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=600&size=23&pause=1000&color=38BDF8&center=true&vCenter=true&width=860&lines=Extract+Civilica+researcher+publications;Format+APA+7th,+Vancouver,+IEEE,+Harvard,+Chicago,+MLA,+and+BibTeX;Export+properly+formatted+Word+documents;Support+Persian+RTL+academic+workflows">
+    <source media="(prefers-color-scheme: light)" srcset="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=600&size=23&pause=1000&color=1E3A5F&center=true&vCenter=true&width=860&lines=Extract+Civilica+researcher+publications;Format+APA+7th,+Vancouver,+IEEE,+Harvard,+Chicago,+MLA,+and+BibTeX;Export+properly+formatted+Word+documents;Support+Persian+RTL+academic+workflows">
+    <img alt="CivilicaPulse capabilities" src="https://readme-typing-svg.demolab.com?font=Plus+Jakarta+Sans&weight=600&size=23&pause=1000&color=1E3A5F&center=true&vCenter=true&width=860&lines=Extract+Civilica+researcher+publications;Format+APA+7th,+Vancouver,+IEEE,+Harvard,+Chicago,+MLA,+and+BibTeX;Export+properly+formatted+Word+documents;Support+Persian+RTL+academic+workflows">
   </picture>
 </p>
 
 <p align="center">
-  <b>A high-performance Persian academic research tool engineered to extract publications from Civilica researcher profiles, curate and filter records, and export standardized Word bibliographies with authentic Persian typography.</b>
+  A focused research utility for turning a public Civilica researcher profile into a searchable publication list and a ready-to-use bibliography.
 </p>
 
 </div>
 
 ---
 
-## سیویلیکاپالس (CivilicaPulse) چیست؟
+## Overview
 
-**CivilicaPulse** یک ابزار پژوهشی مستقل و بدون هزینه برای جامعهٔ علمی و پژوهشگران فارسی‌زبان است. این سامانه با دریافت نشانی صفحهٔ عمومی پژوهشگر در [سیویلیکا (Civilica)](https://civilica.com)، اطلاعات مقالات نمایه‌شده (عنوان، سال، نوع مقاله، محل انتشار و لینک) را استخراج کرده و امکان گزینش، پالایش و دریافت خروجی استاندارد Word با سبک‌های استنادی معتبر را فراهم می‌سازد:
+CivilicaPulse is a free, open-source academic utility for researchers who use [Civilica](https://civilica.com). Paste a public researcher profile URL, review the indexed publications, select the records you need, and export a bibliography in the citation style required by your workflow.
 
-- 🌐 [ورود به وب‌سایت CivilicaPulse](https://soheil-aghayani.github.io/CivilicaPulse/)
-- 💻 [مخزن کد پروژه در GitHub](https://github.com/Soheil-Aghayani/CivilicaPulse)
-- 🔬 [سامانهٔ مرتبط ScholarPulse](https://soheil-aghayani.github.io/ScholarPulse/)
-- 👨‍💻 [پورتفولیوی رسمی سهیل آقایانی](https://soheil-aghayani.github.io/)
+The application is designed for Persian academic content but also handles Latin text, mixed-language titles, co-authors, links, and publication metadata. The default view preserves every available author. An optional target-author isolation control is available when a researcher needs a focused bibliography.
 
-این ریپازیتوری شامل رابط کاربری راست‌به‌چپ (منتشرشده روی GitHub Pages) و موتور پردازش و ساخت اسناد Word مبتنی بر Python Flask است.
+## Live links
 
-<p align="center">
-  <img src="web/assets/civilicapulse-preview.webp" alt="نمای رابط کاربری CivilicaPulse" width="100%">
-</p>
+- **Website:** [soheil-aghayani.github.io/CivilicaPulse](https://soheil-aghayani.github.io/CivilicaPulse/)
+- **API health:** [civilicapulse-api-bridge.soheil-deutschly.workers.dev/api/health](https://civilicapulse-api-bridge.soheil-deutschly.workers.dev/api/health)
+- **Related project:** [ScholarPulse](https://soheil-aghayani.github.io/ScholarPulse/)
+- **Author:** [Soheil Aghayani](https://github.com/Soheil-Aghayani)
 
----
+## Features
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://api.iconify.design/solar:layers-linear.svg?color=%2338BDF8"><source media="(prefers-color-scheme: light)" srcset="https://api.iconify.design/solar:layers-linear.svg?color=%231E3A5F"><img alt="Layers Icon" src="https://api.iconify.design/solar:layers-linear.svg?color=%231E3A5F" width="28" height="28" align="text-bottom"></picture> PLATFORM FEATURES & ARCHITECTURE
+- Extract publication records from a public Civilica researcher profile.
+- Use pasted page HTML when direct profile access is unavailable.
+- Resolve co-authors in small background batches without blocking the initial results.
+- Keep all available authors by default, or isolate a target author when needed.
+- Search and filter by title, author, publication type, venue, and year.
+- Browse long publication lists with pagination, cards, table view, and analytics.
+- Format references as APA 7th, Vancouver, IEEE, Harvard, Chicago, MLA 9th, or BibTeX.
+- Export `.docx` and Word-compatible `.doc` files, plus JSON, CSV, BibTeX, copy, and print outputs.
+- Generate right-to-left Word documents with Persian typography and mixed Persian/Latin text handling.
+- Keep processing stateless: no account, database, API key, or stored publication library is required.
 
-| Feature | Researcher Experience | Underlying Architecture |
+## Architecture
+
+| Layer | Responsibility | Technology |
 | :--- | :--- | :--- |
-| **<img src="https://api.iconify.design/solar:text-square-linear.svg?color=%231E3A5F" width="20" height="20" align="text-bottom"> Persian RTL UI/UX** | Native right-to-left layout styled with **IRANYekanX** typography, smooth pagination, responsive mobile controls, and persistent visual avatars (Jdenticon). | Pure HTML5 and Vanilla CSS with zero heavy frameworks, custom CSS variables, and zero runtime dependencies. |
-| **<img src="https://api.iconify.design/solar:document-linear.svg?color=%232563EB" width="20" height="20" align="text-bottom"> Multi-Style Citation Engine** | Instant formatting into APA 7th, Vancouver, IEEE, Harvard, Chicago, MLA 9th, and BibTeX styles for both Persian and English publications. | Centralized citation parsing engine (`citation_formats.py`) with strict punctuation and locale-aware author rules. |
-| **<img src="https://api.iconify.design/solar:file-check-linear.svg?color=%230284C7" width="20" height="20" align="text-bottom"> Word (.docx / .doc) Styler** | Generates true Microsoft Word documents formatted with **B Nazanin (12pt)** for Persian and **Times New Roman (11pt)** for English with Persian digits. | Native `python-docx` XML generator with explicit `<w:bidi/>` run properties and backward-compatible HTML/Word MIME support. |
-| **<img src="https://api.iconify.design/solar:refresh-circle-linear.svg?color=%23D97706" width="20" height="20" align="text-bottom"> Resilient Dual Ingestion** | Fetch directly via profile URL (e.g. `https://civilica.com/p/176225/`) or paste local HTML source if network or bot restrictions arise. | BeautifulSoup4 DOM parser with regex normalization and defensive fallback heuristics. |
-| **<img src="https://api.iconify.design/solar:shield-check-linear.svg?color=%2316A34A" width="20" height="20" align="text-bottom"> Zero-Auth & Privacy First** | No logins, no database persistence, no API keys, and no AI tracking. Your academic research stays private. | Completely stateless microservice architecture; data is processed in-memory and discarded upon export. |
+| Static frontend | Profile input, search, filters, pagination, author controls, and exports | Semantic HTML, vanilla JavaScript, and CSS |
+| Parser and API | Civilica profile parsing, author enrichment, validation, and export responses | Python and Flask |
+| Citation engine | Style normalization and citation formatting | `citation_formats.py` |
+| Word generator | RTL paragraphs, script-aware fonts, Persian digits, and Word output | `python-docx` and Word-compatible HTML |
+| API bridge | Browser-safe routing from the static site to the Flask service | Cloudflare Worker |
 
----
+### Request flow
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://api.iconify.design/solar:code-linear.svg?color=%2338BDF8"><source media="(prefers-color-scheme: light)" srcset="https://api.iconify.design/solar:code-linear.svg?color=%231E3A5F"><img alt="Code Icon" src="https://api.iconify.design/solar:code-linear.svg?color=%231E3A5F" width="28" height="28" align="text-bottom"></picture> DIRECTORY STRUCTURE & MANAGEMENT
+1. The frontend sends a public Civilica profile URL to the Flask API.
+2. The API returns the publication list quickly so the interface can become usable immediately.
+3. The frontend requests missing article authors in bounded batches and merges them into the current list.
+4. Word and structured exports wait for the author-enrichment run before generating the final file.
 
-The repository is modularly divided into a static front-end layer and a Python-powered export service:
+## Word export rules
 
-```yaml
-📦 CivilicaPulse
- ┣ 📂 web/                  # Static web application (GitHub Pages deploy target)
- ┃ ┣ 📂 assets/            # Brand marks, site/browser-tab icon, IRANYekanX fonts, and SVG icons
- ┃ ┣ 📜 app.js             # Client logic, article filtering, selection, and API bridge
- ┃ ┣ 📜 config.js          # API endpoint config (localhost vs Cloudflare Worker)
- ┃ ┣ 📜 index.html         # Accessible RTL semantic markup
- ┃ ┗ 📜 styles.css         # Institutional theme styles with IRANYekanX webfonts
- ┣ 📂 tests/                # Automated regression test suite
- ┃ ┣ 📜 test_parser.py     # DOM parsing verification
- ┃ ┗ 📜 test_citations.py  # Citation formatter and Word XML export tests
- ┣ 📂 docs/                 # Documentation assets and SVG vector hero banner
- ┣ 📂 cloudflare/           # Cloudflare Worker bridge for the Python API
- ┣ 📜 server.py             # Flask microservice & Word document generator
- ┣ 📜 civilica_parser.py    # Robust scraper & HTML parser
- ┣ 📜 citation_formats.py   # APA, IEEE, Vancouver, Harvard, Chicago formatters
- ┣ 📜 render.yaml           # Render origin service deployment
- ┣ 📜 start.bat             # Instant Windows one-click local development launcher
- ┣ 📜 requirements.txt      # Python dependencies (Flask, beautifulsoup4, python-docx)
- ┗ 📜 README.md             # Platform documentation & technical manual
+| Property | Behavior |
+| :--- | :--- |
+| Direction | Right-to-left paragraphs with right alignment |
+| Persian text | `B Nazanin` |
+| English and Latin text | `Times New Roman`, one point smaller than the Persian base size |
+| Numerals | Persian digits in normal text; URLs preserve Latin digits |
+| Modern output | Native `.docx` generated with `python-docx` |
+| Compatibility output | Word-compatible `.doc` HTML export |
+| Links | Civilica links can be included or omitted from the Word file |
+
+## Repository structure
+
+```text
+CivilicaPulse/
+├── web/                    # Static frontend and GitHub Pages deploy target
+│   ├── assets/             # Site artwork, icons, fonts, and preview assets
+│   ├── app.js              # UI state, rendering, filtering, and exports
+│   ├── config.js           # Local and production API selection
+│   ├── index.html          # Accessible RTL application shell
+│   └── styles.css          # Theme, responsive layout, and component styles
+├── cloudflare/             # Cloudflare Worker API bridge
+├── docs/                   # README and documentation artwork
+├── tests/                  # Parser, citation, and Word export regression tests
+├── citation_formats.py     # Citation style formatters
+├── civilica_parser.py      # Civilica profile and article metadata parsers
+├── server.py               # Flask API and Word document generator
+├── render.yaml             # Render service definition
+├── requirements.txt        # Python dependencies
+└── start.bat               # Windows local-development launcher
 ```
 
----
+## Production API
 
-## Production API routing
+The frontend is published on GitHub Pages. Browser requests use the Cloudflare Worker bridge and are forwarded to the Flask service on Render:
 
-The static interface is published on GitHub Pages. Production API requests use the public Cloudflare Worker bridge below, which forwards only `/api/*` requests to the Flask origin service on Render:
+```text
+https://civilicapulse-api-bridge.soheil-deutschly.workers.dev
+```
 
-`https://civilicapulse-api-bridge.soheil-deutschly.workers.dev`
+Available API routes include:
 
-This keeps browser traffic on a Cloudflare endpoint while preserving the existing Python parser and Word export implementation.
-
----
-
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://api.iconify.design/solar:file-text-linear.svg?color=%2338BDF8"><source media="(prefers-color-scheme: light)" srcset="https://api.iconify.design/solar:file-text-linear.svg?color=%231E3A5F"><img alt="File Icon" src="https://api.iconify.design/solar:file-text-linear.svg?color=%231E3A5F" width="28" height="28" align="text-bottom"></picture> WORD EXPORT SPECIFICATIONS
-
-The output document formatting follows Iranian academic publication standards:
-
-| Property | Rule / Specification | Description |
+| Method | Route | Purpose |
 | :--- | :--- | :--- |
-| **Document Direction** | Right-to-Left (RTL) | Default paragraph orientation is right-aligned RTL |
-| **Persian Typography** | `B Nazanin`, 12 pt | Applied to all Persian text runs with `<w:cs>` definition |
-| **Latin / English Text**| `Times New Roman`, 11 pt | Applied to English authors, titles, DOIs, and venues |
-| **Numeral Localization**| Persian (`۰۱۲۳۴۵۶۷۸۹`) | Publication years and citation index numbers are Persian |
-| **Hyperlinks / URLs**   | Latin (`0-9`), Unaltered | URLs and DOIs preserve English digits and clickability |
-| **Standard File Format**| `.docx` (Office Open XML) | Modern Word standard with native XML styling |
-| **Legacy File Format**  | `.doc` (Word-Compatible) | High compatibility mode for legacy academic workflows |
+| `GET` | `/api/health` | Service health check |
+| `POST` | `/api/parse-profile` | Read a public Civilica profile |
+| `POST` | `/api/parse-html` | Parse pasted Civilica HTML |
+| `POST` | `/api/enrich-authors` | Resolve authors for one bounded batch |
+| `POST` | `/api/export-word` | Generate `.docx` or Word-compatible `.doc` output |
 
----
+## Local development
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://api.iconify.design/solar:play-circle-linear.svg?color=%2338BDF8"><source media="(prefers-color-scheme: light)" srcset="https://api.iconify.design/solar:play-circle-linear.svg?color=%231E3A5F"><img alt="Play Icon" src="https://api.iconify.design/solar:play-circle-linear.svg?color=%231E3A5F" width="28" height="28" align="text-bottom"></picture> GETTING STARTED & LOCAL EXECUTION
+### Windows launcher
 
-### Option 1: One-Click Windows Launcher
-Double-click [`start.bat`](file:///d:/Programming/01%20-%20Web%20Projects/Civilica%20Paper%20Extractor/start.bat) to automatically initialize the virtual environment, install dependencies, and launch the server.
+Double-click [`start.bat`](start.bat) to create or reuse the virtual environment, install dependencies, and start the local server.
 
-### Option 2: Manual PowerShell Setup
+### PowerShell
+
 ```powershell
-# 1. Navigate to the project root
-cd "01 - Web Projects\Civilica Paper Extractor"
-
-# 2. Create and activate a virtual environment
+# From the repository root
 py -m venv .venv
 .\.venv\Scripts\Activate.ps1
-
-# 3. Install dependencies
 pip install -r requirements.txt
-
-# 4. Start the server
 python server.py
 ```
-Open **[http://127.0.0.1:5000](http://127.0.0.1:5000)** in your browser.
 
-### Automated Test Suite
-Run the full test suite verifying HTML parsing, citation formatting, and Word generation:
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000).
+
+### Tests
+
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
----
+## Deployment
 
-## <picture><source media="(prefers-color-scheme: dark)" srcset="https://api.iconify.design/solar:user-circle-linear.svg?color=%2338BDF8"><source media="(prefers-color-scheme: light)" srcset="https://api.iconify.design/solar:user-circle-linear.svg?color=%231E3A5F"><img alt="User Icon" src="https://api.iconify.design/solar:user-circle-linear.svg?color=%231E3A5F" width="28" height="28" align="text-bottom"></picture> DEVELOPER & CREDITS
+- **Frontend:** GitHub Pages from the `web/` directory.
+- **API:** Render service defined by [`render.yaml`](render.yaml).
+- **Browser bridge:** Cloudflare Worker in [`cloudflare/`](cloudflare/).
 
-**Soheil Aghayani**
-- 🎓 **M.Sc. in Environmental Engineering** – University of Tehran
-- 💻 **Interests**: Sustainability Systems, Academic Tools, Web Architectures, Python
-- 📧 **Email**: soheyl.aghayani+github@gmail.com
-- 🔗 **LinkedIn**: [linkedin.com/in/AgSeyl](https://linkedin.com/in/AgSeyl)
-- 🐙 **GitHub**: [@Soheil-Aghayani](https://github.com/Soheil-Aghayani)
+The production frontend is configured in [`web/config.js`](web/config.js). Localhost uses the local Flask server; the published site uses the Cloudflare bridge.
 
----
+## License
+
+CivilicaPulse is released under the MIT License. See [`LICENSE`](LICENSE) for the full text.
+
+## Credits
+
+Designed and developed by [Soheil Aghayani](https://github.com/Soheil-Aghayani), an environmental engineering researcher building focused tools for academic and technical workflows.
+
 <div align="center">
-  <sub>Crafted with precision for Iranian researchers and academia. Released under the MIT License.</sub>
+  <sub>Built for practical Persian academic research workflows.</sub>
 </div>
