@@ -27,6 +27,7 @@ WEB_DIR = ROOT / "web"
 MAX_HTML_BYTES = 8 * 1024 * 1024
 MAX_ARTICLES = 1000
 MAX_AUTHOR_SEARCH_PAGES = 50
+AUTHOR_SEARCH_WORKERS = 4
 ARTICLE_AUTHORS_WORKERS = 8
 ARTICLE_AUTHORS_TIMEOUT = 15
 ARTICLE_DETAIL_MAX_BYTES = 2 * 1024 * 1024
@@ -199,6 +200,19 @@ def merge_unique_articles(
             return
 
 
+def fetch_author_search_page(
+    source_url: str,
+    page_number: int,
+) -> tuple[int, dict[str, object]]:
+    """Fetch and parse one known page of a validated author-name search."""
+
+    page_url = author_search_page_url(source_url, page_number)
+    return page_number, parse_author_search_html(
+        fetch_profile_html(page_url),
+        page_url,
+    )
+
+
 def parse_author_search(source_url: str) -> dict[str, object]:
     """Fetch every bounded page of one official Civilica author-name search."""
 
@@ -210,20 +224,31 @@ def parse_author_search(source_url: str) -> dict[str, object]:
     fetched_pages = 1
     failed_pages: list[int] = []
 
-    for page_number in range(2, requested_pages + 1):
-        if len(articles) >= MAX_ARTICLES:
-            break
-        try:
-            page_url = author_search_page_url(source_url, page_number)
-            page_result = parse_author_search_html(
-                fetch_profile_html(page_url),
-                page_url,
-            )
-        except (RuntimeError, ValueError):
-            failed_pages.append(page_number)
+    page_results: dict[int, dict[str, object]] = {}
+    page_numbers = range(2, requested_pages + 1)
+    if requested_pages > 1:
+        with ThreadPoolExecutor(
+            max_workers=min(AUTHOR_SEARCH_WORKERS, requested_pages - 1)
+        ) as executor:
+            futures = {
+                executor.submit(fetch_author_search_page, source_url, page_number): page_number
+                for page_number in page_numbers
+            }
+            for future in as_completed(futures):
+                page_number = futures[future]
+                try:
+                    _, page_results[page_number] = future.result()
+                except (RuntimeError, ValueError):
+                    failed_pages.append(page_number)
+
+    for page_number in page_numbers:
+        page_result = page_results.get(page_number)
+        if not page_result or len(articles) >= MAX_ARTICLES:
             continue
         fetched_pages += 1
         merge_unique_articles(articles, list(page_result.get("articles") or []))
+
+    failed_pages.sort()
 
     complete = (
         not failed_pages

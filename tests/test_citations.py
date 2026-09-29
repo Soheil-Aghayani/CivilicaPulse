@@ -1,11 +1,12 @@
 import unittest
 from io import BytesIO
+from threading import Barrier
 from unittest.mock import patch
 
 from docx import Document
 
 from citation_formats import format_citation, normalize_style
-from server import app, canonical_profile_url
+from server import app, canonical_profile_url, parse_author_search
 
 
 ARTICLE = {
@@ -273,6 +274,44 @@ class AuthorSearchEndpointTests(unittest.TestCase):
             "complete": True,
         })
         self.assertEqual(fetch.call_count, 2)
+
+    def test_author_search_fetches_following_pages_concurrently_and_in_order(self):
+        page_links = "".join(
+            '<a href="/search/paper/n-test-o-Paper_id-ot-desc-p-{0}/">{0}</a>'.format(number)
+            for number in range(2, 6)
+        )
+        first_page = """
+            <html><body><h1>مقالات پژوهشگر نمونه</h1>{links}
+            <ul id="list"><li><a title="مقاله 1" href="/doc/101/">مقاله 1</a></li></ul>
+            </body></html>
+        """.format(links=page_links)
+        page_barrier = Barrier(4)
+
+        def page_html(page_number):
+            return """
+                <html><body><h1>مقالات پژوهشگر نمونه</h1>
+                <ul id="list"><li>
+                  <a title="مقاله {0}" href="/doc/{1}/">مقاله {0}</a>
+                </li></ul></body></html>
+            """.format(page_number, 100 + page_number)
+
+        def fetch_page(url):
+            if url == "https://civilica.com/search/paper/n-test/":
+                return first_page
+            page_barrier.wait(timeout=1)
+            page_number = int(url.rstrip("/").rsplit("-p-", 1)[1])
+            return page_html(page_number)
+
+        with patch("server.fetch_profile_html", side_effect=fetch_page) as fetch:
+            result = parse_author_search("https://civilica.com/search/paper/n-test/")
+
+        self.assertEqual(fetch.call_count, 5)
+        self.assertEqual(
+            [article["id"] for article in result["articles"]],
+            ["101", "102", "103", "104", "105"],
+        )
+        self.assertEqual(result["pages"]["failed"], [])
+        self.assertTrue(result["pages"]["complete"])
 
     def test_rejects_other_civilica_routes(self):
         with self.assertRaises(ValueError):
