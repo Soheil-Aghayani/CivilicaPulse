@@ -155,3 +155,11 @@ export default {
     }
   }
 };
+
+// Cloudflare keeps this export while the previous experimental Durable Object
+// namespace exists. The production request path never binds to or calls it.
+export class ProfileRelay {
+  async fetch() {
+    return new Response("This relay is no longer in use.", { status: 410 });
+  }
+}
