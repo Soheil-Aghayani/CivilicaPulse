@@ -15,13 +15,18 @@ from urllib.request import Request, urlopen
 from flask import Flask, jsonify, request, send_file, send_from_directory
 
 from citation_formats import format_citation, normalize_style, style_label
-from civilica_parser import parse_article_authors_html, parse_profile_html
+from civilica_parser import (
+    parse_article_authors_html,
+    parse_author_search_html,
+    parse_profile_html,
+)
 
 
 ROOT = Path(__file__).resolve().parent
 WEB_DIR = ROOT / "web"
 MAX_HTML_BYTES = 8 * 1024 * 1024
 MAX_ARTICLES = 1000
+MAX_AUTHOR_SEARCH_PAGES = 50
 ARTICLE_AUTHORS_WORKERS = 8
 ARTICLE_AUTHORS_TIMEOUT = 15
 ARTICLE_DETAIL_MAX_BYTES = 2 * 1024 * 1024
@@ -40,6 +45,11 @@ _URL_PATTERN = re.compile(r"https?://[^\s]+", re.IGNORECASE)
 _PERSIAN_CHAR_PATTERN = re.compile(r"[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\ufb50-\ufdff\ufe70-\ufeff]")
 _LATIN_CHAR_PATTERN = re.compile(r"[A-Za-z]")
 _CIVILICA_HOSTS = {"civilica.com", "www.civilica.com"}
+_PROFILE_PATH_PATTERN = re.compile(r"/p/(\d+)/?")
+_AUTHOR_SEARCH_PATH_PATTERN = re.compile(r"/search/paper/n-([^/]+)/?")
+_AUTHOR_SEARCH_PAGE_SUFFIX_PATTERN = re.compile(
+    r"-o-[A-Za-z0-9_]+-ot-[A-Za-z0-9_]+-p-(\d+)$"
+)
 
 app = Flask(__name__, static_folder=str(WEB_DIR), static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = MAX_HTML_BYTES + 256 * 1024
@@ -75,18 +85,59 @@ def json_error(message: str, status: int = 400):
     return jsonify({"ok": False, "error": message}), status
 
 
+def author_search_slug(path: str) -> str | None:
+    """Return a Civilica author-search slug, excluding its pagination suffix."""
+
+    match = _AUTHOR_SEARCH_PATH_PATTERN.fullmatch(path)
+    if not match:
+        return None
+    slug = _AUTHOR_SEARCH_PAGE_SUFFIX_PATTERN.sub("", match.group(1))
+    return slug or None
+
+
 def canonical_profile_url(value: str) -> str:
+    """Validate a supported Civilica profile or author-name search URL."""
+
     raw = (value or "").strip()
     parsed = urlparse(raw)
     host = (parsed.hostname or "").lower()
     if parsed.scheme not in {"http", "https"} or host not in {"civilica.com", "www.civilica.com"}:
-        raise ValueError("فقط لینک صفحهٔ پژوهشگر سیویلیکا پذیرفته می‌شود.")
+        raise ValueError("فقط لینک پروفایل یا جست‌وجوی نام در سیویلیکا پذیرفته می‌شود.")
 
-    match = re.fullmatch(r"/p/(\d+)/?", parsed.path)
-    if not match:
-        raise ValueError("لینک باید شبیه https://civilica.com/p/xxxxxx/ باشد.")
+    profile_match = _PROFILE_PATH_PATTERN.fullmatch(parsed.path)
+    if profile_match:
+        return f"https://civilica.com/p/{profile_match.group(1)}/"
 
-    return f"https://civilica.com/p/{match.group(1)}/"
+    search_slug = author_search_slug(parsed.path)
+    if search_slug:
+        return f"https://civilica.com/search/paper/n-{search_slug}/"
+
+    raise ValueError(
+        "لینک باید شبیه https://civilica.com/p/xxxxxx/ یا "
+        "https://civilica.com/search/paper/n-نام/ باشد."
+    )
+
+
+def source_kind(source_url: str) -> str:
+    """Classify already-canonical Civilica source URLs."""
+
+    if author_search_slug(urlparse(source_url).path):
+        return "author-search"
+    return "profile"
+
+
+def author_search_page_url(source_url: str, page_number: int) -> str:
+    """Build the canonical Civilica pagination URL for a validated name search."""
+
+    if page_number <= 1:
+        return source_url
+    slug = author_search_slug(urlparse(source_url).path)
+    if not slug:
+        raise ValueError("لینک جست‌وجوی نام سیویلیکا معتبر نیست.")
+    return (
+        "https://civilica.com/search/paper/"
+        f"n-{slug}-o-Paper_id-ot-desc-p-{page_number}/"
+    )
 
 
 def decode_html(raw: bytes, content_type: str = "") -> str:
@@ -131,6 +182,63 @@ def fetch_civilica_html(
 
 def fetch_profile_html(source_url: str) -> str:
     return fetch_civilica_html(source_url)
+
+
+def merge_unique_articles(
+    target: list[dict[str, object]],
+    incoming: list[dict[str, object]],
+) -> None:
+    known_ids = {str(article.get("id") or "") for article in target}
+    for article in incoming:
+        article_id = str(article.get("id") or "")
+        if not article_id or article_id in known_ids:
+            continue
+        target.append(article)
+        known_ids.add(article_id)
+        if len(target) >= MAX_ARTICLES:
+            return
+
+
+def parse_author_search(source_url: str) -> dict[str, object]:
+    """Fetch every bounded page of one official Civilica author-name search."""
+
+    first_result = parse_author_search_html(fetch_profile_html(source_url), source_url)
+    total_pages = max(1, int(first_result.get("page_count") or 1))
+    requested_pages = min(total_pages, MAX_AUTHOR_SEARCH_PAGES)
+    articles: list[dict[str, object]] = []
+    merge_unique_articles(articles, list(first_result.get("articles") or []))
+    fetched_pages = 1
+    failed_pages: list[int] = []
+
+    for page_number in range(2, requested_pages + 1):
+        if len(articles) >= MAX_ARTICLES:
+            break
+        try:
+            page_url = author_search_page_url(source_url, page_number)
+            page_result = parse_author_search_html(
+                fetch_profile_html(page_url),
+                page_url,
+            )
+        except (RuntimeError, ValueError):
+            failed_pages.append(page_number)
+            continue
+        fetched_pages += 1
+        merge_unique_articles(articles, list(page_result.get("articles") or []))
+
+    complete = (
+        not failed_pages
+        and requested_pages == total_pages
+        and len(articles) < MAX_ARTICLES
+    )
+    first_result["articles"] = articles
+    first_result["pages"] = {
+        "total": total_pages,
+        "fetched": fetched_pages,
+        "failed": failed_pages,
+        "limited": requested_pages < total_pages or len(articles) >= MAX_ARTICLES,
+        "complete": complete,
+    }
+    return first_result
 
 
 def fetch_article_authors(article: dict[str, object]) -> str:
@@ -183,12 +291,15 @@ def normalized_payload(result: dict[str, object]) -> dict[str, object]:
     articles = result.get("articles") or []
     articles = list(articles)[:MAX_ARTICLES]
     profile = result.get("profile") or {}
-    return {
+    payload = {
         "ok": True,
         "profile": profile,
         "articles": articles,
         "count": len(articles),
     }
+    if isinstance(result.get("pages"), dict):
+        payload["pages"] = result["pages"]
+    return payload
 
 
 def safe_text(value: object, limit: int = 12000) -> str:
@@ -248,8 +359,11 @@ def parse_profile():
     body = request.get_json(silent=True) or {}
     try:
         source_url = canonical_profile_url(str(body.get("url", "")))
-        html = fetch_profile_html(source_url)
-        result = parse_profile_html(html, source_url)
+        if source_kind(source_url) == "author-search":
+            result = parse_author_search(source_url)
+        else:
+            html = fetch_profile_html(source_url)
+            result = parse_profile_html(html, source_url)
         if not result["articles"]:
             return json_error(
                 "مقاله‌ای در صفحه پیدا نشد. لینک را بررسی کنید یا HTML صفحه را در حالت جایگزین بچسبانید.",
@@ -304,7 +418,10 @@ def parse_html():
     else:
         source_url = "https://civilica.com/"
 
-    result = parse_profile_html(html, source_url)
+    if source_kind(source_url) == "author-search":
+        result = parse_author_search_html(html, source_url)
+    else:
+        result = parse_profile_html(html, source_url)
     if not result["articles"]:
         return json_error(
             "از این HTML مقاله‌ای پیدا نشد. در مرورگر، گزینهٔ View Page Source را کپی کنید.",

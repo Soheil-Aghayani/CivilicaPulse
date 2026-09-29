@@ -5,7 +5,7 @@ from unittest.mock import patch
 from docx import Document
 
 from citation_formats import format_citation, normalize_style
-from server import app
+from server import app, canonical_profile_url
 
 
 ARTICLE = {
@@ -16,6 +16,39 @@ ARTICLE = {
     "type": "مقاله ژورنالی",
     "url": "https://civilica.com/doc/12/",
 }
+
+AUTHOR_SEARCH_URL = (
+    "https://civilica.com/search/paper/"
+    "n-%D8%B9%D9%84%DB%8C%D8%B1%D8%B6%D8%A7_%D9%BE%D8%B1%D8%AF%D8%A7%D8%AE%D8%AA%DB%8C/"
+)
+
+AUTHOR_SEARCH_PAGE_ONE = """
+<html dir="rtl"><body>
+  <h1>مقالات علیرضا پرداختی</h1>
+  <a href="/search/paper/n-%D8%B9%D9%84%DB%8C%D8%B1%D8%B6%D8%A7_%D9%BE%D8%B1%D8%AF%D8%A7%D8%AE%D8%AA%DB%8C-o-Paper_id-ot-desc-p-2/">2</a>
+  <ul id="list"><li>
+    <a title="مقالهٔ اول" href="/doc/101/">مقالهٔ اول</a>
+    <h5>مقاله ژورنالی</h5>
+    <div>نویسندگان: علیرضا پرداختی، نویسندهٔ همکار<br/>سال انتشار 1402<br/>
+      محل انتشار: مجلهٔ نمونه<br/>تعداد صفحات: 8 | زبان: فارسی</div>
+  </li></ul>
+</body></html>
+"""
+
+AUTHOR_SEARCH_PAGE_TWO = """
+<html dir="rtl"><body>
+  <h1>مقالات علیرضا پرداختی</h1>
+  <ul id="list">
+    <li><a title="مقالهٔ اول" href="/doc/101/">مقالهٔ اول</a></li>
+    <li>
+      <a title="مقالهٔ دوم" href="/doc/102/">مقالهٔ دوم</a>
+      <h5>مقاله کنفرانسی</h5>
+      <div>نویسندگان: علیرضا پرداختی<br/>سال انتشار 1401<br/>
+        محل انتشار: همایش نمونه<br/>تعداد صفحات: 10 | زبان: فارسی</div>
+    </li>
+  </ul>
+</body></html>
+"""
 
 
 class CitationFormatTests(unittest.TestCase):
@@ -206,6 +239,44 @@ class AuthorEnrichmentEndpointTests(unittest.TestCase):
             response.get_json()["articles"][0]["authors"],
             "رضا خاکپور، ناصر مهردادی",
         )
+
+
+class AuthorSearchEndpointTests(unittest.TestCase):
+    def setUp(self):
+        self.client = app.test_client()
+
+    def test_author_search_url_is_canonicalized_without_pagination(self):
+        paged_url = AUTHOR_SEARCH_URL.rstrip("/") + "-o-Paper_id-ot-desc-p-9/"
+
+        self.assertEqual(canonical_profile_url(paged_url), AUTHOR_SEARCH_URL)
+
+    def test_author_search_collects_all_result_pages(self):
+        with patch(
+            "server.fetch_profile_html",
+            side_effect=[AUTHOR_SEARCH_PAGE_ONE, AUTHOR_SEARCH_PAGE_TWO],
+        ) as fetch:
+            response = self.client.post(
+                "/api/parse-profile",
+                json={"url": AUTHOR_SEARCH_URL},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(payload["profile"]["name"], "علیرضا پرداختی")
+        self.assertEqual(payload["count"], 2)
+        self.assertEqual([article["id"] for article in payload["articles"]], ["101", "102"])
+        self.assertEqual(payload["pages"], {
+            "total": 2,
+            "fetched": 2,
+            "failed": [],
+            "limited": False,
+            "complete": True,
+        })
+        self.assertEqual(fetch.call_count, 2)
+
+    def test_rejects_other_civilica_routes(self):
+        with self.assertRaises(ValueError):
+            canonical_profile_url("https://civilica.com/search/paper/engineering/")
 
 
 if __name__ == "__main__":

@@ -111,7 +111,7 @@
       body: JSON.stringify({ url: profileUrl })
     }, backendRequestTimeout);
     var payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || "دریافت پروفایل انجام نشد.");
+    if (!response.ok) throw new Error(payload.error || "دریافت مقاله‌ها انجام نشد.");
     return payload;
   }
 
@@ -125,7 +125,7 @@
     var html = await response.text();
     var parsed = parseCivilicaHtml(html, profileUrl);
     if (!parsed || !Array.isArray(parsed.articles) || !parsed.articles.length) {
-      throw new Error("مقاله‌ای در این پروفایل پیدا نشد.");
+      throw new Error("مقاله‌ای در این لینک پیدا نشد.");
     }
     return {
       ok: true,
@@ -1410,7 +1410,7 @@
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
       var url = urlInput.value.trim();
-      if (!url) return showToast("لطفاً آدرس صفحه پژوهشگر را وارد کنید.");
+      if (!url) return showToast("لطفاً لینک پروفایل یا جست‌وجوی نام را وارد کنید.");
 
       // Normalize civilica URL (support Persian digits in URL too, e.g. /p/۱۷۶۲۲۵/)
       url = url.replace(/[۰-۹٠-٩]/g, function (d) {
@@ -1426,8 +1426,13 @@
 
       try {
         var payload = await requestProfile(url);
-        if (!loadDataset(payload)) throw new Error("مقاله‌ای در این پروفایل پیدا نشد.");
-        showToast(toPersianDigits(payload.count || payload.articles.length) + " مقاله آماده شد.");
+        if (!loadDataset(payload)) throw new Error("مقاله‌ای در این لینک پیدا نشد.");
+        var pageStatus = payload.pages || {};
+        var message = toPersianDigits(payload.count || payload.articles.length) + " مقاله آماده شد.";
+        if (pageStatus.complete === false) {
+          message += " برخی صفحه‌ها کامل دریافت نشدند.";
+        }
+        showToast(message);
       } catch (err) {
         showToast(userFacingError(err, "اتصال برقرار نشد؛ حالت HTML را امتحان کنید."));
       } finally {

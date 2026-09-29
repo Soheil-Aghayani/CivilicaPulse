@@ -31,7 +31,7 @@
 
 ## Overview
 
-CivilicaPulse is a free, open-source academic utility for researchers who use [Civilica](https://civilica.com). Paste a public researcher profile URL, review the indexed publications, select the records you need, and export a bibliography in the citation style required by your workflow.
+CivilicaPulse is a free, open-source academic utility for researchers who use [Civilica](https://civilica.com). Paste a public researcher profile URL or a Civilica author-name search URL, review the indexed publications, select the records you need, and export a bibliography in the citation style required by your workflow.
 
 The application is designed for Persian academic content but also handles Latin text, mixed-language titles, co-authors, links, and publication metadata. The default view preserves every available author. An optional target-author isolation control is available when a researcher needs a focused bibliography.
 
@@ -67,7 +67,7 @@ The application is designed for Persian academic content but also handles Latin 
 
 ### Request flow
 
-1. The frontend sends a public Civilica profile URL to the Flask API.
+1. The frontend sends a public Civilica profile URL or author-name search URL to the Flask API. Author-name searches collect their bounded result pages and deduplicate articles by Civilica record ID.
 2. The API returns the publication list quickly so the interface can become usable immediately.
 3. The frontend requests missing article authors in bounded batches and merges them into the current list.
 4. Word and structured exports wait for the author-enrichment run before generating the final file.
@@ -118,7 +118,7 @@ Available API routes include:
 | Method | Route | Purpose |
 | :--- | :--- | :--- |
 | `GET` | `/api/health` | Service health check |
-| `POST` | `/api/parse-profile` | Read a public Civilica profile |
+| `POST` | `/api/parse-profile` | Read a public Civilica profile or author-name search |
 | `POST` | `/api/parse-html` | Parse pasted Civilica HTML |
 | `POST` | `/api/enrich-authors` | Resolve authors for one bounded batch |
 | `POST` | `/api/export-word` | Generate `.docx` or Word-compatible `.doc` output |
